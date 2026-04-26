@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-brand-forest: #2d3e14;
+  --color-brand-olive: #4b6b1e;
+  --color-brand-mint: #98c983;
+  --color-brand-cream: #f9faf4;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-cream text-slate-900 antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Custom shadows for TRUE LABEL theme */
+.shadow-medical {
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.05), 0 2px 10px -2px rgba(0, 0, 0, 0.02);
+}
+
+.shadow-medical-hover:hover {
+  box-shadow: 0 10px 30px -5px rgba(75, 107, 30, 0.1), 0 4px 15px -3px rgba(75, 107, 30, 0.05);
+}

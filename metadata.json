@@ -1,0 +1,12 @@
+{
+  "name": "TRUE LABEL",
+  "description": "Smart AI-powered medicine and food label scanner for personalized safety analysis and risk detection.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "AI Analysis",
+    "OCR",
+    "Health Scanning"
+  ]
+}
