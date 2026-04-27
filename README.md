@@ -1,5 +1,3 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 
 # 🛡️ True Label
 
@@ -9,7 +7,11 @@
 ---
 
 ## 🎯 Our Mission
-In a world of complex chemical names and hidden additives, **True Label** empowers individuals to take control of their health. We bridge the gap between "standard product data" and "personal health context," ensuring you always know exactly what you are putting into your body.
+TRUE LABEL transforms generic product information into personalized health intelligence. By combining advanced AI with individual health profiles, we enable users to make informed consumption decisions that align with their specific health needs, allergies, medications, and wellness goals
+
+## How True Label works
+>The platform uses Agentic RAG (Retrieval-Augmented Generation) to provide context-aware, personalized responses rather than generic information. This ensures that every product analysis considers the user's unique health fingerprint, creating a truly customized safety system.
+
 
 > [!IMPORTANT]
 > True Label is more than a scanner; it is a personalized wellness guardian that understands your specific health needs before evaluating any product.
@@ -62,7 +64,7 @@ We take your data security and privacy seriously.
 ---
 
 <div align="center">
-Built with ❤️ for a safer, healthier world.
+Built  for a safer, healthier world.
 <br/>
 <i>Empowering safer choices, one label at a time.</i>
 </div>
