@@ -227,7 +227,7 @@ export default function App() {
   const checkCabinetSafety = async () => {
     if (cabinet.length < 2) return;
     if (!isOnline) {
-      setCabinetWarnings(["Offline Mode: Safety interaction check is unavailable."]);
+      setCabinetWarnings([t.cabinetOffline]);
       return;
     }
     setIsCheckingCabinet(true);
@@ -357,13 +357,13 @@ export default function App() {
 
   const onboardingSteps = [
     {
-      title: "Welcome to TRUE LABEL",
-      subtitle: "Let's set up your personalized safety profile.",
+      title: t.welcome,
+      subtitle: t.personalizeProfile,
       content: (
         <div className="flex flex-col gap-4">
           <input 
             type="text" 
-            placeholder="Your Name" 
+            placeholder={t.yourName} 
             className="w-full p-4 rounded-2xl bg-brand-cream/50 border border-brand-sage focus:ring-2 focus:ring-brand-olive outline-none transition-all font-bold"
             onChange={(e) => setUserProfile({...userProfile, name: e.target.value})}
           />
@@ -372,7 +372,7 @@ export default function App() {
               <div className="flex flex-col gap-1">
                 <input 
                   type="number" 
-                  placeholder="Age" 
+                  placeholder={t.age} 
                   className={`w-full p-4 rounded-2xl bg-brand-cream/50 border ${errors.age ? 'border-rose-500' : 'border-brand-sage'} focus:ring-2 focus:ring-brand-olive outline-none transition-all font-bold`}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -386,7 +386,7 @@ export default function App() {
                 <input 
                   type="number" 
                   step="0.1"
-                  placeholder="Weight (kg)" 
+                  placeholder={t.weight} 
                   className={`w-full p-4 rounded-2xl bg-brand-cream/50 border ${errors.weight ? 'border-rose-500' : 'border-brand-sage'} focus:ring-2 focus:ring-brand-olive outline-none transition-all font-bold`}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -402,26 +402,26 @@ export default function App() {
             className="w-full p-4 rounded-2xl bg-brand-cream/50 border border-brand-sage focus:ring-2 focus:ring-brand-olive outline-none transition-all font-bold"
             onChange={(e) => setUserProfile({...userProfile, gender: e.target.value})}
           >
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
+            <option value="Male">{t.male}</option>
+            <option value="Female">{t.female}</option>
+            <option value="Other">{t.other}</option>
           </select>
         </div>
       )
     },
     {
-      title: "Allergies & Health",
-      subtitle: "Select what we should watch out for.",
+      title: t.allergiesAndHealth,
+      subtitle: t.onboardingSub2,
       content: (
         <div className="flex flex-col gap-6">
           <div>
-            <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Allergies</label>
+            <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">{t.allergies}</label>
             <div className="flex flex-wrap gap-2">
               <button 
                 onClick={() => setUserProfile({...userProfile, allergies: ["None"]})}
                 className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${userProfile.allergies.includes("None") ? 'bg-slate-800 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-500'}`}
               >
-                None
+                {t.none}
               </button>
               {["Peanuts", "Dairy", "Gluten", "Soy", "Penicillin"].map(a => (
                 <button 
@@ -442,13 +442,13 @@ export default function App() {
           </div>
 
           <div>
-            <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Chronic Illnesses</label>
+            <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">{t.chronicIllnesses}</label>
             <div className="flex flex-wrap gap-2">
               <button 
                 onClick={() => setUserProfile({...userProfile, chronicIllnesses: ["None"]})}
                 className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${userProfile.chronicIllnesses.includes("None") ? 'bg-slate-800 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-500'}`}
               >
-                None
+                {t.none}
               </button>
               {["Diabetes", "Hypertension", "Asthma", "Heart Disease"].map(c => (
                 <button 
@@ -469,17 +469,17 @@ export default function App() {
           </div>
 
           <div>
-            <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Current Medications</label>
+            <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">{t.currentMeds}</label>
             <div className="flex flex-col gap-3">
               <button 
                 onClick={() => setUserProfile({...userProfile, medications: ["None"]})}
                 className={`w-full p-4 rounded-2xl text-sm font-bold border text-center transition-all ${userProfile.medications.includes("None") ? 'bg-slate-800 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-500'}`}
               >
-                I am not taking any medication
+                {t.notTakingMed}
               </button>
               <input 
                 type="text" 
-                placeholder="Add medication (e.g. Metformin)"
+                placeholder={t.addMed}
                 className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -498,15 +498,15 @@ export default function App() {
       )
     },
     {
-      title: "Your Goals",
-      subtitle: "How can True Label help you best?",
+      title: t.yourGoals,
+      subtitle: t.onboardingSub3,
       content: (
         <div className="grid grid-cols-1 gap-3">
           {[
-            { id: "Weight Loss", icon: "⚖️" },
-            { id: "Manage Diabetes", icon: "🩸" },
-            { id: "Heart Healthy", icon: "🫀" },
-            { id: "Clean Eating", icon: "🥬" }
+            { id: "Weight Loss", icon: "⚖️", label: t.weightLoss },
+            { id: "Manage Diabetes", icon: "🩸", label: t.manageDiabetes },
+            { id: "Heart Healthy", icon: "🫀", label: t.heartHealthy },
+            { id: "Clean Eating", icon: "🥬", label: t.cleanEating }
           ].map(goal => (
             <button 
               key={goal.id}
@@ -520,41 +520,48 @@ export default function App() {
               className={`flex items-center gap-4 p-4 rounded-2xl border transition-all text-left ${userProfile.healthGoals.includes(goal.id) ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-100' : 'bg-white border-slate-200 text-slate-700'}`}
             >
               <span className="text-2xl">{goal.icon}</span>
-              <span className="font-bold">{goal.id}</span>
+              <span className="font-bold">{goal.label}</span>
             </button>
           ))}
         </div>
       )
     },
     {
-      title: "Scan Preferences",
-      subtitle: "Customize how we analyze your products.",
+      title: t.scanPreferences,
+      subtitle: t.onboardingSub4,
       content: (
         <div className="flex flex-col gap-6">
           <div>
-            <label className="text-[10px] font-black uppercase text-slate-400 mb-3 block">Priority Ingredient Checks</label>
+            <label className="text-[10px] font-black uppercase text-slate-400 mb-3 block">{t.priorityIngredients}</label>
             <div className="flex flex-wrap gap-2 mb-3">
-              {['Sugar', 'Sodium', 'Trans Fat', 'Artificial Colors', 'Preservatives', 'MSG'].map(p => {
-                const isSelected = userProfile.scanSettings.priorityIngredients.includes(p);
+              {[
+                {id: 'Sugar', label: t.sugar}, 
+                {id: 'Sodium', label: t.sodium}, 
+                {id: 'Trans Fat', label: t.transFat}, 
+                {id: 'Artificial Colors', label: t.artColors}, 
+                {id: 'Preservatives', label: t.preservatives}, 
+                {id: 'MSG', label: t.msg}
+              ].map(p => {
+                const isSelected = userProfile.scanSettings.priorityIngredients.includes(p.id);
                 return (
                   <button
-                    key={p}
+                    key={p.id}
                     onClick={() => {
                       const newPriorities = isSelected
-                        ? userProfile.scanSettings.priorityIngredients.filter(x => x !== p)
-                        : [...userProfile.scanSettings.priorityIngredients, p];
+                        ? userProfile.scanSettings.priorityIngredients.filter(x => x !== p.id)
+                        : [...userProfile.scanSettings.priorityIngredients, p.id];
                       setUserProfile({...userProfile, scanSettings: {...userProfile.scanSettings, priorityIngredients: newPriorities}});
                     }}
                     className={`text-xs px-3 py-1.5 rounded-xl font-bold transition-all border ${isSelected ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-100' : 'bg-white border-slate-200 text-slate-500'}`}
                   >
-                    {p}
+                    {p.label}
                   </button>
                 );
               })}
             </div>
             <input 
               type="text"
-              placeholder="Add other ingredient (e.g. Aspartame)"
+              placeholder={t.addOtherIng}
               className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 text-sm"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -576,10 +583,10 @@ export default function App() {
 
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="text-[10px] font-black uppercase text-slate-400">Caution Sensitivity</label>
+              <label className="text-[10px] font-black uppercase text-slate-400">{t.cautionSensitivity}</label>
               <span className="text-xs font-bold text-emerald-600">{userProfile.scanSettings.cautionThreshold}%</span>
             </div>
-            <p className="text-xs text-slate-500 mb-4">Lower sensitivity means we warn you more often.</p>
+            <p className="text-xs text-slate-500 mb-4">{t.onboardingSub5}</p>
             <input 
               type="range" 
               min="1" 
@@ -595,8 +602,8 @@ export default function App() {
               className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
             />
             <div className="flex justify-between mt-1">
-              <span className="text-[10px] font-bold text-slate-400">Strict</span>
-              <span className="text-[10px] font-bold text-slate-400">Lenient</span>
+              <span className="text-[10px] font-bold text-slate-400">{t.strict}</span>
+              <span className="text-[10px] font-bold text-slate-400">{t.lenient}</span>
             </div>
           </div>
         </div>
@@ -633,7 +640,7 @@ export default function App() {
 
   const handleScanUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isOnline) {
-      alert("Deep AI safety scanning requires an internet connection. Please connect and try again.");
+      alert(t.deepScanOffline);
       return;
     }
     const file = e.target.files?.[0];
@@ -696,36 +703,12 @@ export default function App() {
       let offlineResponse = '';
       const tLower = text.toLowerCase();
       
-      const tlMsg = {
-        allergy: 'మీకు అలెర్జీలు ఉన్నాయి: ',
-        none: 'ఏమీ లేదు',
-        cab: 'మీ క్యాబినెట్‌లో ',
-        cab2: ' వస్తువులు ఉన్నాయి. ',
-        def: 'నేను ఆఫ్‌లైన్‌లో ఉన్నాను. కానీ మీరు నేను క్యాబినెట్ లేదా ప్రొఫైల్ గురించి అడగవచ్చు.'
-      };
-      const hiMsg = {
-        allergy: 'आपको एलर्जी है: ',
-        none: 'कोई नहीं',
-        cab: 'आपके कैबिनेट में ',
-        cab2: ' आइटम हैं। ',
-        def: 'मैं ऑफ़लाइन हूँ। लेकिन आप मुझसे कैबिनेट या प्रोफ़ाइल के बारे में पूछ सकते हैं।'
-      };
-      const enMsg = {
-        allergy: 'Your allergies are: ',
-        none: 'None',
-        cab: 'You have ',
-        cab2: ' items in your cabinet. ',
-        def: 'I am offline. But you can still ask me about your cabinet or profile.'
-      };
-
-      const msg = language === 'te' ? tlMsg : language === 'hi' ? hiMsg : enMsg;
-
       if (tLower.includes('allerg') || tLower.includes('అలెర్జీ') || tLower.includes('एलर्जी')) {
-        offlineResponse = msg.allergy + (userProfile.allergies.length ? userProfile.allergies.join(", ") : msg.none);
+        offlineResponse = t.offlineChatAllergy + (userProfile.allergies.length ? userProfile.allergies.join(", ") : language === 'en' ? 'None' : language === 'hi' ? 'कोई नहीं' : 'ఏమీ లేదు');
       } else if (tLower.includes('cabine') || tLower.includes('క్యాబినెట్') || tLower.includes('कैबिनेट')) {
-        offlineResponse = msg.cab + cabinet.length + msg.cab2 + cabinet.map(i => i.name).join(", ");
+        offlineResponse = t.offlineChatCabinet.replace('{count}', cabinet.length.toString()) + cabinet.map(i => i.name).join(", ");
       } else {
-        offlineResponse = msg.def;
+        offlineResponse = t.offlineChatDef;
       }
       
       const modelMsg: ChatMessage = { 
@@ -773,7 +756,7 @@ export default function App() {
 
   const handleIngredientClick = async (name: string) => {
     if (!isOnline) {
-      alert("Ingredient analysis requires an internet connection. Please connect and try again.");
+      alert(t.analysisOffline);
       return;
     }
     setActiveIngredient({ name });
@@ -811,21 +794,21 @@ export default function App() {
             <Clock size={20} />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-rose-900">Expiring Soon</h3>
-            <p className="text-[10px] text-rose-600 font-medium">{expiringSoonItems.length} items in your cabinet need attention.</p>
+            <h3 className="text-sm font-bold text-rose-900">{t.expiringSoon}</h3>
+            <p className="text-[10px] text-rose-600 font-medium">{expiringSoonItems.length} {t.itemsAttention}</p>
           </div>
-          <button onClick={() => setActiveCabinetView(expiringSoonItems[0].type)} className="text-[10px] font-black text-rose-700 bg-white px-3 py-1.5 rounded-full border border-rose-200 uppercase tracking-tight">Check</button>
+          <button onClick={() => setActiveCabinetView(expiringSoonItems[0].type)} className="text-[10px] font-black text-rose-700 bg-white px-3 py-1.5 rounded-full border border-rose-200 uppercase tracking-tight">{t.check}</button>
         </motion.div>
       )}
 
       <section className="bg-emerald-600 rounded-3xl p-6 text-white shadow-xl shadow-emerald-100 flex flex-col gap-4 relative overflow-hidden">
         <div className="z-10 relative">
-          <h2 className="text-2xl font-bold font-sans">Ready to scan?</h2>
-          <p className="text-emerald-50 opacity-90 text-sm mt-1">Check safety profiles for food & medicine instantly.</p>
+          <h2 className="text-2xl font-bold font-sans">{t.readyToScan}</h2>
+          <p className="text-emerald-50 opacity-90 text-sm mt-1">{t.checkSafetyProfiles}</p>
           
           <label className="mt-6 flex items-center justify-center gap-3 bg-white text-emerald-700 font-bold py-4 px-6 rounded-2xl cursor-pointer active:scale-95 transition-transform shadow-lg">
             <Camera size={24} />
-            SCAN PRODUCT
+            {t.scanProduct}
             <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleScanUpload} />
           </label>
         </div>
@@ -840,8 +823,8 @@ export default function App() {
             <Pill size={20} />
           </div>
           <div>
-            <h3 className="font-bold text-slate-800">Med Cabinet</h3>
-            <p className="text-xs text-slate-500">{cabinet.filter(c => c.type === 'medicine').length} items stored</p>
+            <h3 className="font-bold text-slate-800">{t.medCabinet}</h3>
+            <p className="text-xs text-slate-500">{cabinet.filter(c => c.type === 'medicine').length} {t.itemsStored}</p>
           </div>
         </button>
         <button onClick={() => setActiveCabinetView('food')} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3 text-left hover:bg-slate-50 transition-colors">
@@ -849,8 +832,8 @@ export default function App() {
             <Utensils size={20} />
           </div>
           <div>
-            <h3 className="font-bold text-slate-800">Food Cabinet</h3>
-            <p className="text-xs text-slate-500">{cabinet.filter(c => c.type === 'food').length} items stored</p>
+            <h3 className="font-bold text-slate-800">{t.foodCabinet}</h3>
+            <p className="text-xs text-slate-500">{cabinet.filter(c => c.type === 'food').length} {t.itemsStored}</p>
           </div>
         </button>
       </div>
@@ -900,13 +883,13 @@ export default function App() {
           <div className="w-24 h-24 bg-rose-100 rounded-full flex items-center justify-center text-rose-500 mb-6 drop-shadow-sm">
             <AlertTriangle size={48} />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 mb-4 text-center">Invalid Image</h2>
-          <p className="text-slate-600 text-center mb-8 max-w-sm">{res.invalidReason || "Please scan a valid food or medicine product, ingredient list, or label."}</p>
+          <h2 className="text-2xl font-black text-slate-800 mb-4 text-center">{t.invalidImage}</h2>
+          <p className="text-slate-600 text-center mb-8 max-w-sm">{res.invalidReason || t.invalidReason}</p>
           <button 
             onClick={() => setCurrentResult(null)}
             className="w-full max-w-sm bg-slate-900 text-white font-black py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-transform uppercase tracking-widest text-xs"
           >
-            <ArrowLeft size={16} /> Go Back
+            <ArrowLeft size={16} /> {t.goBack}
           </button>
         </div>
       );
@@ -953,7 +936,7 @@ export default function App() {
               className="flex items-center gap-2 mt-2 bg-black/10 px-3 py-1 rounded-full backdrop-blur-sm"
             >
               <Package size={14} />
-              <span className="text-[10px] font-black uppercase tracking-widest">{isMedicine ? 'Pharmaceutical Analysis' : 'Nutritional Analysis'}</span>
+              <span className="text-[10px] font-black uppercase tracking-widest">{isMedicine ? t.medicineWarning : t.foodAnalysis}</span>
             </motion.div>
           </div>
 
@@ -975,7 +958,7 @@ export default function App() {
           >
             <div className="flex justify-between items-center mb-8">
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Safety Index</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{t.safetyIndex}</span>
                 <div className="flex items-baseline gap-1">
                   <span className={`text-5xl font-black ${res.status === SafetyStatus.SAFE ? 'text-emerald-600' : res.status === SafetyStatus.UNSAFE ? 'text-rose-600' : 'text-amber-600'}`}>
                     {res.safetyScore}
@@ -996,7 +979,7 @@ export default function App() {
               {interactionWarnings.length > 0 && (
                 <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl">
                   <h4 className="text-[10px] font-black text-rose-700 uppercase tracking-widest flex items-center gap-2 mb-2">
-                    <AlertTriangle size={14} /> Critical Interactions
+                    <AlertTriangle size={14} /> {t.criticalInteractions}
                   </h4>
                   <ul className="space-y-1">
                     {interactionWarnings.map((w, i) => (
@@ -1011,14 +994,14 @@ export default function App() {
           <div className="space-y-8 pb-8">
             {/* Health Profile Compatibility */}
             <section>
-              <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 px-2">Personal Compatibility</h3>
+              <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 px-2">{t.personalCompatibility}</h3>
               <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
                 <div className="flex items-center justify-between py-2 border-b border-slate-50">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center">
                       <User size={16} />
                     </div>
-                    <span className="text-sm font-bold text-slate-700">Health Profile Match</span>
+                    <span className="text-sm font-bold text-slate-700">{t.healthProfileMatch}</span>
                   </div>
                   <span className="text-xs font-black text-emerald-600 uppercase">Personalized</span>
                 </div>
@@ -1027,14 +1010,14 @@ export default function App() {
                   <div className="flex items-start gap-3 bg-rose-50 p-3 rounded-xl border border-rose-100">
                     <AlertTriangle size={16} className="text-rose-600 mt-0.5" />
                     <div>
-                      <p className="text-xs font-bold text-rose-900">Matches Found with Allergies</p>
-                      <p className="text-[11px] text-rose-600 mt-0.5">Contains: {allergyConflicts.join(", ")}</p>
+                      <p className="text-xs font-bold text-rose-900">{t.healthMatchFound || 'Allergy Concerns'}</p>
+                      <p className="text-[11px] text-rose-600 mt-0.5">{t.contains} {allergyConflicts.join(", ")}</p>
                     </div>
                   </div>
                 ) : (
                   <div className="flex items-center gap-3 bg-emerald-50 p-3 rounded-xl border border-emerald-100">
                     <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                    <p className="text-[11px] text-emerald-800 font-medium">Safe for your documented allergies and chronic illnesses.</p>
+                    <p className="text-[11px] text-emerald-800 font-medium">{t.compatibleMatch}</p>
                   </div>
                 )}
 
@@ -1046,14 +1029,14 @@ export default function App() {
                   }}
                   className="w-full flex items-center justify-center gap-2 py-3 bg-slate-900 text-white rounded-xl text-xs font-bold active:scale-[0.98] transition-transform"
                 >
-                  <MessageSquare size={14} /> ASK AI ABOUT MY RISKS
+                  <MessageSquare size={14} /> {t.askAiRisks}
                 </button>
               </div>
             </section>
 
             {/* Smart Safety Note */}
             <section>
-              <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 px-2">Clinical Safety Note</h3>
+              <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 px-2">{t.clinicalSafetyNote}</h3>
               <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-50 rounded-bl-full flex items-center justify-center pl-4 pb-4">
                   <ShieldCheck size={24} className="text-emerald-600/30" />
@@ -1063,7 +1046,7 @@ export default function App() {
                 </p>
                 <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-tighter">
                   <Clock size={12} />
-                  Evaluated on {res.scanDate}
+                  {t.evaluatedOn} {res.scanDate}
                 </div>
               </div>
             </section>
@@ -1071,7 +1054,7 @@ export default function App() {
             {/* Detailed Ingredient Analytics */}
             <section>
               <div className="flex justify-between items-center mb-4 px-2">
-                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Ingredient Analytics</h3>
+                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">{t.ingredientsAnalysis}</h3>
                 <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{res.ingredients.length} items</span>
               </div>
               <div className="grid grid-cols-1 gap-3">
@@ -1097,7 +1080,7 @@ export default function App() {
             {/* Comparison & Alternatives */}
             {res.alternatives.length > 0 && (
               <section>
-                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 px-2">Smart Recommendations</h3>
+                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 px-2">{t.recommendations}</h3>
                 <div className="flex flex-col gap-4">
                   {res.alternatives.map((alt, i) => (
                     <motion.div 
@@ -1126,19 +1109,19 @@ export default function App() {
             {/* Global Context */}
             <section className="grid grid-cols-2 gap-4">
               <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Expiry Verdict</span>
-                <p className="text-sm font-black text-slate-800">{res.expiryDate || 'Unknown'}</p>
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">{t.expiryVerdict}</span>
+                <p className="text-sm font-black text-slate-800">{res.expiryDate || t.unknown}</p>
                 <div className={`mt-2 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full inline-block ${res.expiryConfidence === 'High' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                  {res.expiryConfidence} Confidence
+                  {res.expiryConfidence} {t.confidence}
                 </div>
               </div>
               <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Global Bans</span>
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">{t.globalBans}</span>
                 <div className="flex flex-wrap gap-1">
                   {res.restrictedCountries.length > 0 ? res.restrictedCountries.map((c, i) => (
                     <span key={i} className="text-[8px] bg-rose-50 px-2 py-0.5 rounded-md text-rose-600 font-bold uppercase">{c}</span>
                   )) : (
-                    <span className="text-[9px] font-bold text-emerald-600 uppercase">Globally Safe</span>
+                    <span className="text-[9px] font-bold text-emerald-600 uppercase">{t.globallySafe}</span>
                   )}
                 </div>
               </div>
@@ -1153,13 +1136,13 @@ export default function App() {
               onClick={() => speakResult(`${res.productName}. Safety Score ${res.safetyScore} percent. ${res.summary}`)} 
               className="w-full bg-slate-900 text-white font-black py-3 rounded-xl shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-2 text-[10px] tracking-widest"
             >
-              <Volume2 size={16} /> PLAY AUDIO
+              <Volume2 size={16} /> {t.playAudio}
             </button>
             <button 
               onClick={stopAudio} 
               className="w-full bg-slate-100 text-slate-800 font-bold py-2 rounded-xl shadow-sm border border-slate-200 active:scale-95 transition-transform flex items-center justify-center gap-2 text-[10px] tracking-widest"
             >
-              <Square size={12} className="fill-slate-800" /> STOP
+              <Square size={12} className="fill-slate-800" /> {t.stopAudio}
             </button>
           </div>
           <button 
@@ -1177,7 +1160,7 @@ export default function App() {
 
   const renderCabinet = () => {
     const items = cabinet.filter(c => c.type === activeCabinetView);
-    const title = activeCabinetView === 'medicine' ? 'Medical Cabinet' : 'Food Cabinet';
+    const title = activeCabinetView === 'medicine' ? t.medicalCabinet : t.foodCabinet;
     const Icon = activeCabinetView === 'medicine' ? Pill : Utensils;
     const accentColor = activeCabinetView === 'medicine' ? 'text-blue-600' : 'text-orange-600';
 
@@ -1214,7 +1197,7 @@ export default function App() {
             <section className="bg-amber-50 border border-amber-200 p-4 rounded-3xl flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-[10px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
-                  <AlertTriangle size={14} /> Interaction Alerts
+                  <AlertTriangle size={14} /> {t.interactionAlerts}
                 </h4>
                 <button onClick={() => setCabinetWarnings([])} className="text-amber-400"><X size={14}/></button>
               </div>
@@ -1228,8 +1211,8 @@ export default function App() {
           {items.length === 0 ? (
             <div className="py-20 text-center flex flex-col items-center gap-4 text-slate-400">
                <Package size={64} strokeWidth={1} className="opacity-20" />
-               <p className="font-bold">Your cabinet is empty.</p>
-               <p className="text-sm max-w-xs">Scan labels and click the '+' button to add them here.</p>
+               <p className="font-bold">{t.cabinetEmpty}</p>
+               <p className="text-sm max-w-xs">{language === 'en' ? 'Scan labels and click the \'+\' button to add them here.' : language === 'hi' ? 'लेबल स्कैन करें और उन्हें यहां जोड़ने के लिए \'+\' बटन पर क्लिक करें।' : 'లేబుల్‌లను స్కాన్ చేయండి మరియు వాటిని ఇక్కడ జోడించడానికి \'+\' బటన్‌ను క్లిక్ చేయండి.'}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
@@ -1268,9 +1251,9 @@ export default function App() {
           )}
 
           <section className="bg-slate-900 rounded-3xl p-6 text-white">
-            <h3 className="font-black text-lg mb-2">Expiry Tracking</h3>
-            <p className="text-xs text-slate-400 leading-relaxed font-medium">True Label will automatically notify you {reminderThreshold === 30 ? '30 days' : reminderThreshold === 14 ? '14 days' : '7 days'} before any item in your cabinet expires.</p>
-            <button onClick={() => setShowReminderConfig(true)} className="mt-4 text-xs font-bold bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl transition-colors">CONFIGURE ALERTS</button>
+            <h3 className="font-black text-lg mb-2">{t.expiryTracking}</h3>
+            <p className="text-xs text-slate-400 leading-relaxed font-medium">{language === 'en' ? `True Label will automatically notify you ${reminderThreshold} days before any item in your cabinet expires.` : language === 'hi' ? `ट्रू लेबल आपके कैबिनेट में किसी भी आइटम की समाप्ति से ${reminderThreshold} दिन पहले आपको स्वचालित रूप से सूचित करेगा।` : `మీ క్యాబినెట్‌లోని ఏదైనా వస్తువు గడువు ముగియడానికి ${reminderThreshold} రోజుల ముందే ట్రూ లేబుల్ మీకు స్వయంచాలకంగా తెలియజేస్తుంది.`}</p>
+            <button onClick={() => setShowReminderConfig(true)} className="mt-4 text-xs font-bold bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl transition-colors">{t.configureAlerts}</button>
           </section>
         </div>
 
@@ -1392,12 +1375,12 @@ export default function App() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110] flex items-center justify-center p-6">
               <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-black text-slate-800">Edit {activeCabinetView === 'medicine' ? 'Medicine' : 'Item'}</h3>
+                  <h3 className="text-xl font-black text-slate-800">{activeCabinetView === 'medicine' ? t.editMedicine : t.editItem}</h3>
                   <button onClick={() => setEditingItem(null)} className="text-slate-400"><X size={20}/></button>
                 </div>
                 <div className="flex flex-col gap-4">
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Name</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">{t.name}</label>
                     <input 
                       type="text" 
                       defaultValue={editingItem.name} 
@@ -1406,7 +1389,7 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Expiry Date</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">{t.expiryDate}</label>
                     <input 
                       type="text" 
                       defaultValue={editingItem.expiryDate} 
@@ -1419,7 +1402,7 @@ export default function App() {
                     onClick={() => handleUpdateItem(editingItem)}
                     className="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg mt-4 active:scale-95 transition-transform"
                   >
-                    SAVE CHANGES
+                    {t.saveChanges}
                   </button>
                 </div>
               </motion.div>
@@ -1543,7 +1526,7 @@ export default function App() {
   const renderProfile = () => (
     <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} className="fixed inset-0 bg-slate-50 z-[200] overflow-y-auto p-6">
       <header className="flex justify-between items-center mb-8">
-        <h2 className="text-2xl font-bold text-slate-800">Your Profile</h2>
+        <h2 className="text-2xl font-bold text-slate-800">{t.profile}</h2>
         <button onClick={() => setShowProfile(false)} className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md">
           <X size={20} />
         </button>
@@ -1565,9 +1548,9 @@ export default function App() {
                    placeholder="Enter Name"
                  />
                ) : (
-                 <h3 className="font-bold text-lg">{userProfile.name || 'Anonymous User'}</h3>
+                 <h3 className="font-bold text-lg">{userProfile.name || t.anonymousUser}</h3>
                )}
-               <p className="text-xs text-slate-500">{userProfile.age} yrs • {userProfile.gender} • {userProfile.weight}kg</p>
+               <p className="text-xs text-slate-500">{userProfile.age} {t.yrs} • {t[userProfile.gender.toLowerCase()] || userProfile.gender} • {userProfile.weight}kg</p>
              </div>
           </div>
 
@@ -1575,7 +1558,7 @@ export default function App() {
             <div className="flex flex-col gap-4 mt-2">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Age</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.age}</label>
                   <input 
                     type="number" 
                     value={userProfile.age}
@@ -1589,7 +1572,7 @@ export default function App() {
                   {errors.age && <span className="text-[9px] text-rose-500 font-bold">{errors.age}</span>}
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Weight (kg)</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.weight}</label>
                   <input 
                     type="number" 
                     step="0.1"
@@ -1606,7 +1589,7 @@ export default function App() {
               </div>
               
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gender</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.gender}</label>
                 <div className="grid grid-cols-3 gap-2">
                   {['Male', 'Female', 'Other'].map(g => (
                     <button 
@@ -1614,7 +1597,7 @@ export default function App() {
                       onClick={() => setUserProfile({...userProfile, gender: g})}
                       className={`py-2 rounded-xl text-xs font-bold border transition-all ${userProfile.gender === g ? 'bg-slate-800 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-500'}`}
                     >
-                      {g}
+                      {t[g.toLowerCase()] || g}
                     </button>
                   ))}
                 </div>
@@ -1625,20 +1608,20 @@ export default function App() {
           {showResetConfirm ? (
             <div className="flex flex-col gap-3 mt-2">
               <p className="text-xs text-rose-600 font-bold text-center bg-rose-50 p-3 rounded-lg border border-rose-100">
-                Are you sure? All profile data and scan history will be permanently deleted.
+                {t.resetDialog}
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <button 
                   onClick={() => setShowResetConfirm(false)}
                   className="bg-slate-100 text-slate-600 text-[10px] font-black py-3 rounded-xl active:scale-95 transition-transform uppercase tracking-widest"
                 >
-                  Cancel
+                  {t.cancel}
                 </button>
                 <button 
                   onClick={resetData}
                   className="bg-rose-600 text-white text-[10px] font-black py-3 rounded-xl shadow-lg active:scale-95 transition-transform uppercase tracking-widest"
                 >
-                  Confirm Reset
+                  {t.confirmReset}
                 </button>
               </div>
             </div>
@@ -1657,13 +1640,13 @@ export default function App() {
                 disabled={isEditingProfile && Object.keys(errors).length > 0}
                 className={`${isEditingProfile ? 'bg-brand-olive' : 'bg-slate-900'} text-white text-[10px] font-black py-3 rounded-xl shadow-lg active:scale-95 transition-transform uppercase tracking-widest disabled:opacity-50`}
               >
-                {isEditingProfile ? 'Save Details' : 'Edit Details'}
+                {isEditingProfile ? t.saveDetails : t.editDetails}
               </button>
               <button 
                 onClick={isEditingProfile ? () => setIsEditingProfile(false) : () => setShowResetConfirm(true)}
                 className={`${isEditingProfile ? 'bg-slate-100 text-slate-600' : 'bg-rose-50 text-rose-600'} text-[10px] font-black py-3 rounded-xl border border-rose-100 active:scale-95 transition-transform uppercase tracking-widest flex items-center justify-center gap-2`}
               >
-                {isEditingProfile ? 'Cancel' : <><RotateCcw size={12} /> Reset Data</>}
+                {isEditingProfile ? t.cancel : <><RotateCcw size={12} /> {t.resetProfile}</>}
               </button>
             </div>
           )}
@@ -1671,7 +1654,7 @@ export default function App() {
 
         <section className="flex flex-col gap-4">
           <div className="flex justify-between items-center">
-            <h3 className="font-bold text-slate-800">Health Context</h3>
+            <h3 className="font-bold text-slate-800">{t.healthProfile}</h3>
             <div className="flex gap-2">
               <button 
                 onClick={() => setLanguage(Language.ENGLISH)} 
@@ -1687,13 +1670,13 @@ export default function App() {
           
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-6">
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">Allergies</label>
+              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">{t.allergies}</label>
               <div className="flex flex-wrap gap-2">
                 <button 
                   onClick={() => setUserProfile({...userProfile, allergies: ["None"]})}
                   className={`text-xs px-4 py-2 rounded-xl font-bold border transition-all ${userProfile.allergies.includes("None") ? 'bg-slate-800 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-500'}`}
                 >
-                  None
+                  {language === 'en' ? 'None' : language === 'hi' ? 'कोई नहीं' : 'ఏమీ లేదు'}
                 </button>
                 {userProfile.allergies.filter(a => a !== "None").map((a, i) => (
                   <span key={i} className="text-xs bg-rose-50 text-rose-600 px-4 py-2 rounded-xl font-bold border border-rose-100 flex items-center gap-2">
@@ -1733,13 +1716,13 @@ export default function App() {
             </div>
 
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">Current Medications</label>
+              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">{t.currentMeds}</label>
               <div className="flex flex-wrap gap-2">
                 <button 
                   onClick={() => setUserProfile({...userProfile, medications: ["None"]})}
                   className={`text-xs px-4 py-2 rounded-xl font-bold border transition-all ${userProfile.medications.includes("None") ? 'bg-slate-800 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-500'}`}
                 >
-                  None
+                  {language === 'en' ? 'None' : language === 'hi' ? 'कोई नहीं' : 'ఏమీ లేదు'}
                 </button>
                 {userProfile.medications.filter(m => m !== "None").map((m, i) => (
                   <span key={i} className="text-xs bg-blue-50 text-blue-600 px-4 py-2 rounded-xl font-bold border border-blue-100 flex items-center gap-2">
@@ -1779,13 +1762,13 @@ export default function App() {
             </div>
 
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">Chronic Illnesses</label>
+              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">{t.chronicIllnesses}</label>
               <div className="flex flex-wrap gap-2">
                 <button 
                   onClick={() => setUserProfile({...userProfile, chronicIllnesses: ["None"]})}
                   className={`text-xs px-4 py-2 rounded-xl font-bold border transition-all ${userProfile.chronicIllnesses.includes("None") ? 'bg-slate-800 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-500'}`}
                 >
-                  None
+                  {language === 'en' ? 'None' : language === 'hi' ? 'कोई नहीं' : 'ఏమీ లేదు'}
                 </button>
                 {userProfile.chronicIllnesses.filter(c => c !== "None").map((c, i) => (
                   <span key={i} className="text-xs bg-amber-50 text-amber-600 px-4 py-2 rounded-xl font-bold border border-amber-100 flex items-center gap-2">
@@ -1825,7 +1808,7 @@ export default function App() {
             </div>
 
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">Dietary Restrictions</label>
+              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">{t.dietaryRestrictions}</label>
               <div className="flex flex-wrap gap-2">
                 {userProfile.dietaryRestrictions.map((d, i) => (
                   <span key={i} className="text-xs bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl font-bold border border-indigo-100 flex items-center gap-2">
@@ -1865,7 +1848,7 @@ export default function App() {
             </div>
 
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">Health Goals</label>
+              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">{t.healthGoals}</label>
               <div className="flex flex-wrap gap-2">
                 {userProfile.healthGoals.map((g, i) => (
                   <span key={i} className="text-xs bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl font-bold border border-emerald-100 flex items-center gap-2">
@@ -1907,12 +1890,12 @@ export default function App() {
             <div className="pt-6 border-t border-slate-100">
               <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <Settings size={18} className="text-slate-400" />
-                Scan Preferences
+                {t.priorityScans}
               </h3>
               
               <div className="flex flex-col gap-6">
                 <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 mb-3 block">Priority Ingredient Checks</label>
+                  <label className="text-[10px] font-black uppercase text-slate-400 mb-3 block">{t.priorityIngredients || 'Priority Ingredient Checks'}</label>
                   <div className="flex flex-wrap gap-2">
                     {userProfile.scanSettings.priorityIngredients.map((p, i) => (
                       <span key={i} className="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg font-bold flex items-center gap-2">
@@ -2014,7 +1997,7 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-emerald-100">
       {!isOnline && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-white text-[10px] font-bold text-center py-1 z-[200]">
-          OFFLINE MODE: AI scans and some features are not available.
+          {t.offlineBanner}
         </div>
       )}
       <AnimatePresence>
@@ -2052,14 +2035,14 @@ export default function App() {
                       onClick={() => setOnboardingStep(prev => prev - 1)}
                       className="px-8 py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold transition-transform active:scale-95"
                     >
-                      Back
+                      {t.back}
                     </button>
                   )}
                   <button 
                     onClick={onboardingStep < onboardingSteps.length - 1 ? handleOnboardingNext : finishOnboarding}
                     className="flex-1 bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-xl shadow-emerald-100 active:scale-95 transition-transform"
                   >
-                    {onboardingStep === onboardingSteps.length - 1 ? "Start Scanning" : "Continue"}
+                    {onboardingStep === onboardingSteps.length - 1 ? t.startScanning : t.continue}
                   </button>
                 </div>
               </div>
@@ -2102,7 +2085,7 @@ export default function App() {
              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-brand-olive">
                <User size={20} />
              </div>
-             My Health
+             {t.myHealth}
           </button>
         </nav>
 
@@ -2132,27 +2115,27 @@ export default function App() {
                             <Heart size={32} />
                          </div>
                          <div>
-                            <h2 className="text-2xl font-black text-slate-800">Your Health Profile</h2>
-                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Medical Context</p>
+                            <h2 className="text-2xl font-black text-slate-800">{t.yourHealthProfile}</h2>
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{t.medicalContext}</p>
                          </div>
                       </div>
 
                       <div className="space-y-6">
                          <div className="flex justify-between items-center py-4 border-b border-slate-50">
-                            <span className="text-xs font-black text-slate-400 uppercase">Age</span>
-                            <span className="font-bold text-slate-700">{userProfile.age} Years</span>
+                            <span className="text-xs font-black text-slate-400 uppercase">{t.age}</span>
+                            <span className="font-bold text-slate-700">{userProfile.age} {language === 'en' ? 'Years' : language === 'hi' ? 'वर्ष' : 'సంవత్సరాలు'}</span>
                          </div>
                          <div className="flex justify-between items-center py-4 border-b border-slate-50">
-                            <span className="text-xs font-black text-slate-400 uppercase">Weight</span>
+                            <span className="text-xs font-black text-slate-400 uppercase">{t.weight}</span>
                             <span className="font-bold text-slate-700">{userProfile.weight} kg</span>
                          </div>
                          <div className="flex justify-between items-center py-4 border-b border-slate-50">
-                            <span className="text-xs font-black text-slate-400 uppercase">Gender</span>
-                            <span className="font-bold text-slate-700">{userProfile.gender}</span>
+                            <span className="text-xs font-black text-slate-400 uppercase">{t.gender}</span>
+                            <span className="font-bold text-slate-700">{t[userProfile.gender.toLowerCase()] || userProfile.gender}</span>
                          </div>
                          
                          <div>
-                            <span className="text-xs font-black text-slate-400 uppercase block mb-3">Active Allergies</span>
+                            <span className="text-xs font-black text-slate-400 uppercase block mb-3">{t.activeAllergies}</span>
                             <div className="flex flex-wrap gap-2">
                                {userProfile.allergies.map((a, i) => (
                                   <span key={i} className="text-[10px] font-black uppercase px-3 py-1.5 bg-rose-50 text-rose-600 rounded-full border border-rose-100">
@@ -2167,20 +2150,20 @@ export default function App() {
                         onClick={() => setShowProfile(true)}
                         className="w-full mt-10 bg-slate-900 text-white font-black py-5 rounded-2xl shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-2 text-xs tracking-widest"
                       >
-                         <Settings size={18} /> MANAGE FULL PROFILE
+                         <Settings size={18} /> {t.manageFullProfile}
                       </button>
                    </div>
                    
                    <div className="grid grid-cols-2 gap-4">
                       <div className="bg-emerald-600 text-white p-6 rounded-3xl shadow-lg shadow-emerald-100">
                          <ShieldCheck size={24} className="mb-4 opacity-50" />
-                         <h4 className="text-sm font-black mb-1">Safe Ingredients</h4>
-                         <p className="text-[10px] opacity-80 leading-relaxed font-bold">Priority filters are active for your profile.</p>
+                         <h4 className="text-sm font-black mb-1">{t.safeIngredients}</h4>
+                         <p className="text-[10px] opacity-80 leading-relaxed font-bold">{language === 'en' ? 'Priority filters are active for your profile.' : language === 'hi' ? 'आपके प्रोफ़ाइल के लिए प्राथमिकता फ़िल्टर सक्रिय हैं।' : 'మీ ప్రొఫైల్ కోసం ప్రాధాన్యత ఫిల్టర్లు సక్రియంగా ఉన్నాయి.'}</p>
                       </div>
                       <div className="bg-white p-6 rounded-3xl border border-slate-100">
                          <AlertTriangle size={24} className="mb-4 text-amber-500 opacity-50" />
-                         <h4 className="text-sm font-black text-slate-800 mb-1">Warnings</h4>
-                         <p className="text-[10px] text-slate-400 leading-relaxed font-bold">Interactions checked with {userProfile.medications.length} items.</p>
+                         <h4 className="text-sm font-black text-slate-800 mb-1">{t.warnings}</h4>
+                         <p className="text-[10px] text-slate-400 leading-relaxed font-bold">{language === 'en' ? `Interactions checked with ${userProfile.medications.length} items.` : language === 'hi' ? `${userProfile.medications.length} आइटम के साथ इंटरैक्शन की जांच की गई।` : `${userProfile.medications.length} వస్తువులతో పరస్పర చర్యలు తనిఖీ చేయబడ్డాయి.`}</p>
                       </div>
                    </div>
                 </motion.div>
@@ -2221,13 +2204,13 @@ export default function App() {
                    <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mb-6">
                      <AlertTriangle size={36} />
                    </div>
-                   <h3 className="text-2xl font-black text-slate-800 mb-4">Safety Concern Detected</h3>
+                   <h3 className="text-2xl font-black text-slate-800 mb-4">{t.safetyConcern}</h3>
                    <p className="text-slate-600 leading-relaxed mb-8">{activeSafetyConcern}</p>
                    <button 
                     onClick={() => setActiveSafetyConcern(null)}
                     className="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl active:scale-95 transition-transform flex items-center justify-center gap-2"
                    >
-                     <CheckCircle2 size={20} /> I UNDERSTOOD
+                     <CheckCircle2 size={20} /> {t.iUnderstood}
                    </button>
                 </motion.div>
              </motion.div>
@@ -2242,8 +2225,8 @@ export default function App() {
                 <ShieldCheck className="absolute inset-0 m-auto text-emerald-600" size={48} />
               </div>
               <div>
-                <h3 className="text-2xl font-black text-slate-800">Analyzing Precision Health Data</h3>
-                <p className="text-slate-500 mt-2 max-w-xs mx-auto">Cross-referencing 50,000+ medical records with your personalized profile.</p>
+                <h3 className="text-2xl font-black text-slate-800">{t.analyzingData}</h3>
+                <p className="text-slate-500 mt-2 max-w-xs mx-auto">{t.analyzingSub}</p>
               </div>
             </motion.div>
           )}
@@ -2262,20 +2245,20 @@ export default function App() {
                 {isIngredientLoading ? (
                   <div className="py-12 flex flex-col items-center gap-4">
                     <div className="w-10 h-10 border-4 border-emerald-100 border-t-emerald-600 animate-spin rounded-full" />
-                    <p className="text-sm text-slate-500 font-medium tracking-tight">AI performing deep analysis...</p>
+                    <p className="text-sm text-slate-500 font-medium tracking-tight">{t.deepAnalysis}</p>
                   </div>
                 ) : activeIngredient.details ? (
                   <div className="flex flex-col gap-6">
                     <div>
-                      <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Common Uses</h4>
+                      <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">{t.commonUses}</h4>
                       <p className="text-sm text-slate-600 leading-relaxed">{activeIngredient.details.commonUses}</p>
                     </div>
                     <div>
-                      <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Health Implications</h4>
+                      <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">{t.healthImplications}</h4>
                       <p className="text-sm text-slate-600 leading-relaxed">{activeIngredient.details.healthImplications}</p>
                     </div>
                     <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
-                      <h4 className="text-[10px] font-black uppercase text-emerald-600 tracking-widest mb-2">Safety Verdict</h4>
+                      <h4 className="text-[10px] font-black uppercase text-emerald-600 tracking-widest mb-2">{t.safetyVerdict}</h4>
                       <p className="text-sm text-emerald-900 font-bold leading-relaxed">{activeIngredient.details.safetyVerdict}</p>
                     </div>
                   </div>
@@ -2285,7 +2268,7 @@ export default function App() {
                   onClick={() => setActiveIngredient(null)}
                   className="w-full mt-8 bg-slate-900 text-white font-bold py-4 rounded-2xl active:scale-95 transition-transform"
                 >
-                  CLOSE
+                  {t.close}
                 </button>
               </motion.div>
             </motion.div>

@@ -1,64 +1,54 @@
 import React from 'react';
+import { ShieldCheck } from 'lucide-react';
 
 export const Logo = ({ className = "", showText = true, size = "lg" }: { className?: string, showText?: boolean, size?: "sm" | "md" | "lg" | "xl" }) => {
   const sizeClasses = {
     sm: "w-10 h-10",
     md: "w-16 h-16",
     lg: "w-32 h-32",
-    xl: "w-48 h-48",
+    xl: "w-52 h-52",
   };
   
-  const textSizeClasses = {
-    sm: "text-[3px]",
-    md: "text-[4.5px]",
-    lg: "text-[4.5px]",
-    xl: "text-[4.5px]",
-  };
-
-  const textScale = {
-    sm: "scale-50",
-    md: "scale-75",
-    lg: "scale-100",
-    xl: "scale-150",
+  const iconSizes = {
+    sm: 20,
+    md: 32,
+    lg: 64,
+    xl: 100,
   };
 
   return (
     <div className={`flex flex-col items-center justify-center ${className}`}>
       <div className={`relative ${sizeClasses[size]} flex items-center justify-center`}>
-        {/* Curving Text above the logo */}
-        <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full">
-          <path id="curve" d="M 15 55 A 35 35 0 1 1 85 55" fill="transparent" />
-          <text fontSize="5.5" fill="#4B5563" fontWeight="600" letterSpacing="1.5" className="uppercase font-sans">
-            <textPath href="#curve" startOffset="50%" textAnchor="middle">
-              True Label • Wellness You Can Trust
-            </textPath>
-          </text>
-        </svg>
-
-        {/* Outer Ring */}
-        <div className="w-[60%] h-[60%] rounded-full bg-[#527027] p-[3%] shadow-sm">
-          {/* Inner Light Ring */}
-          <div className="w-full h-full rounded-full bg-[#f8f9f5] p-[5%]">
-            {/* Inner Dark Circle */}
-            <div className="w-full h-full rounded-full bg-[#527027] flex items-center justify-center p-[8%]">
-              {/* Shield */}
-              <div 
-                className="w-full h-full bg-[#6a8b34] rounded-t-sm rounded-b-lg flex items-center justify-center shadow-inner"
-                style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 70%, 50% 100%, 0% 70%)' }}
-              >
-                {/* Checkmark */}
-                <svg className="w-[60%] h-[60%] text-[#86eda4] drop-shadow-sm mb-[5%]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </div>
-            </div>
-          </div>
+        {/* Modern Minimalist Accent Rings */}
+        <div className="absolute inset-0 rounded-full border border-emerald-100/50 scale-110" />
+        <div className="absolute inset-0 rounded-full border-2 border-emerald-50 scale-105" />
+        
+        {/* Main Logo Container */}
+        <div className="w-full h-full rounded-[2.5rem] bg-emerald-600 flex items-center justify-center shadow-2xl shadow-emerald-200/50 border-4 border-white relative z-10 overflow-hidden">
+          {/* Subtle Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+          
+          {/* Refined Shield Icon */}
+          <ShieldCheck 
+            size={iconSizes[size]} 
+            className="text-white drop-shadow-lg relative z-20" 
+            strokeWidth={1.5}
+          />
         </div>
+
+        {/* Floating Decorative Elements */}
+        <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white shadow-sm z-30" />
       </div>
+      
       {showText && (
-        <h2 className={`text-[#415a1f] font-serif tracking-[0.25em] font-medium mt-1 uppercase text-center ${size === 'sm' ? 'text-[8px] mt-0.5' : size === 'md' ? 'text-xs' : size === 'lg' ? 'text-lg' : 'text-2xl mt-2'}`}>
-          True Label
-        </h2>
+        <div className="mt-4 text-center">
+          <h2 className={`text-slate-900 font-black tracking-tight leading-none ${size === 'sm' ? 'text-[10px]' : size === 'md' ? 'text-lg' : size === 'lg' ? 'text-3xl' : 'text-5xl'}`}>
+            TRUE<span className="text-emerald-600">LABEL</span>
+          </h2>
+          <p className={`font-black text-slate-400 uppercase tracking-[0.3em] ${size === 'sm' ? 'text-[6px] mt-0.5' : size === 'md' ? 'text-[8px] mt-1' : size === 'lg' ? 'text-[10px] mt-1.5' : 'text-xs mt-2'}`}>
+            Digital Health Safety
+          </p>
+        </div>
       )}
     </div>
   );
