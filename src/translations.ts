@@ -160,7 +160,14 @@ export const translations = {
     yourName: "Your Name",
     unknown: "Unknown",
     globallySafe: "Globally Safe",
-    confidence: "Confidence"
+    confidence: "Confidence",
+    rateScan: "Rate this scan",
+    accuracyFeedback: "How accurate was this analysis?",
+    thankYouFeedback: "Thank you for your feedback!",
+    accurate: "Accurate",
+    inaccurate: "Inaccurate",
+    uploadImage: "Upload Image",
+    takePhoto: "Take Photo"
   },
   hi: {
     home: "होम",
@@ -323,7 +330,14 @@ export const translations = {
     yourName: "आपका नाम",
     unknown: "अज्ञात",
     globallySafe: "विश्व स्तर पर सुरक्षित",
-    confidence: "विश्वास"
+    confidence: "विश्वास",
+    rateScan: "इस स्कैन को रेट करें",
+    accuracyFeedback: "यह विश्लेषण कितना सटीक था?",
+    thankYouFeedback: "आपकी प्रतिक्रिया के लिए धन्यवाद!",
+    accurate: "सटीक",
+    inaccurate: "गलत",
+    uploadImage: "छवि अपलोड करें",
+    takePhoto: "फोटो लें"
   },
   te: {
     home: "హోమ్",
@@ -486,6 +500,13 @@ export const translations = {
     yourName: "మీ పేరు",
     unknown: "తెలియదు",
     globallySafe: "ప్రపంచవ్యాప్తంగా సురక్షితం",
-    confidence: "విశ్వాసం"
+    confidence: "విశ్వాసం",
+    rateScan: "ఈ స్కాన్‌ను రేట్ చేయండి",
+    accuracyFeedback: "ఈ విశ్లేషణ ఎంత ఖచ్చితమైనది?",
+    thankYouFeedback: "మీ అభిప్రాయానికి కృతజ్ఞతలు!",
+    accurate: "ఖచ్చితమైనది",
+    inaccurate: "ఖచ్చితమైనది కాదు",
+    uploadImage: "చిత్రాన్ని అప్‌లోడ్ చేయండి",
+    takePhoto: "ఫోటో తీయండి"
   }
 };

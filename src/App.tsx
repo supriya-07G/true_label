@@ -34,7 +34,12 @@ import {
   Trash2,
   RotateCcw,
   Wifi,
-  WifiOff
+  WifiOff,
+  ThumbsUp,
+  ThumbsDown,
+  ChevronLeft,
+  Image as ImageIcon,
+  Upload
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { 
@@ -141,6 +146,20 @@ export default function App() {
   const [newGoal, setNewGoal] = useState('');
   const [newDiet, setNewDiet] = useState('');
   const [newPriority, setNewPriority] = useState('');
+
+  // Feedback System
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
+  const handleFeedback = (isPositive: boolean) => {
+    setFeedbackSubmitted(true);
+    // In a real app, send this to a backend/analytics
+    console.log(`Feedback for ${currentResult?.productName}: ${isPositive ? 'Positive' : 'Negative'}`);
+    setTimeout(() => {
+      setShowFeedback(false);
+      setFeedbackSubmitted(false);
+    }, 2000);
+  };
 
   const t = translations[language] || translations.en;
 
@@ -806,11 +825,18 @@ export default function App() {
           <h2 className="text-2xl font-bold font-sans">{t.readyToScan}</h2>
           <p className="text-emerald-50 opacity-90 text-sm mt-1">{t.checkSafetyProfiles}</p>
           
-          <label className="mt-6 flex items-center justify-center gap-3 bg-white text-emerald-700 font-bold py-4 px-6 rounded-2xl cursor-pointer active:scale-95 transition-transform shadow-lg">
-            <Camera size={24} />
-            {t.scanProduct}
-            <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleScanUpload} />
-          </label>
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <label className="flex-1 flex items-center justify-center gap-3 bg-white text-emerald-700 font-bold py-4 px-6 rounded-2xl cursor-pointer active:scale-95 transition-transform shadow-lg">
+              <Camera size={20} />
+              <span className="text-xs uppercase tracking-wider">{t.takePhoto}</span>
+              <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleScanUpload} />
+            </label>
+            <label className="flex-1 flex items-center justify-center gap-3 bg-emerald-500 text-white border-2 border-white/30 font-bold py-4 px-6 rounded-2xl cursor-pointer active:scale-95 transition-transform shadow-lg">
+              <ImageIcon size={20} />
+              <span className="text-xs uppercase tracking-wider">{t.uploadImage}</span>
+              <input type="file" accept="image/*" className="hidden" onChange={handleScanUpload} />
+            </label>
+          </div>
         </div>
         <div className="absolute -right-10 -bottom-10 opacity-10 rotate-12">
           <ShieldCheck size={200} />
@@ -941,14 +967,61 @@ export default function App() {
           </div>
 
           <button onClick={() => setCurrentResult(null)} className="absolute top-6 left-6 w-10 h-10 bg-white/20 backdrop-blur-md border border-white/30 text-white rounded-full flex items-center justify-center active:scale-90 transition-transform">
-            <ArrowLeft size={20} />
+            <ChevronLeft size={20} />
           </button>
-          <button onClick={() => shareReport(res)} className="absolute top-6 right-6 w-10 h-10 bg-white/20 backdrop-blur-md border border-white/30 text-white rounded-full flex items-center justify-center active:scale-90 transition-transform">
+          
+          <button 
+            onClick={() => setShowFeedback(!showFeedback)} 
+            className={`absolute top-6 right-6 w-10 h-10 ${showFeedback ? 'bg-white text-emerald-600' : 'bg-white/20 text-white'} backdrop-blur-md border border-white/30 rounded-full flex items-center justify-center active:scale-90 transition-all z-20`}
+          >
+            <ThumbsUp size={18} />
+          </button>
+          <button onClick={() => shareReport(res)} className="absolute top-6 right-20 w-10 h-10 bg-white/20 backdrop-blur-md border border-white/30 text-white rounded-full flex items-center justify-center active:scale-90 transition-transform">
             <Share2 size={20} />
           </button>
         </div>
 
         <div className="px-5 -mt-10 relative z-20">
+          <AnimatePresence>
+            {showFeedback && (
+              <motion.div 
+                initial={{ height: 0, opacity: 0, marginBottom: 0 }}
+                animate={{ height: 'auto', opacity: 1, marginBottom: 24 }}
+                exit={{ height: 0, opacity: 0, marginBottom: 0 }}
+                className="bg-white rounded-3xl p-6 shadow-xl border-2 border-emerald-500 overflow-hidden"
+              >
+                {feedbackSubmitted ? (
+                  <div className="flex flex-col items-center gap-3 text-emerald-600 font-black py-4">
+                    <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center">
+                      <ShieldCheck size={24} />
+                    </div>
+                    <p className="text-center text-sm">{t.thankYouFeedback}</p>
+                  </div>
+                ) : (
+                  <>
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                       <MessageSquare size={14} /> {t.rateScan}
+                    </h4>
+                    <p className="text-sm font-black text-slate-800 mb-6">{t.accuracyFeedback}</p>
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={() => handleFeedback(true)}
+                        className="flex-1 bg-emerald-50 text-emerald-600 py-4 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                      >
+                        <ThumbsUp size={16} /> {t.accurate}
+                      </button>
+                      <button 
+                        onClick={() => handleFeedback(false)}
+                        className="flex-1 bg-rose-50 text-rose-600 py-4 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                      >
+                        <ThumbsDown size={16} /> {t.inaccurate}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
           {/* Safety Score Card */}
           <motion.div 
             initial={{ y: 20, opacity: 0 }} 
@@ -2012,8 +2085,8 @@ export default function App() {
               <Logo size="xl" />
               <p className="text-xl opacity-80 leading-relaxed max-w-md mt-12 text-center text-[#527027]">Join thousands of people using AI to scan, track, and optimize their health one label at a time.</p>
             </div>
-            <div className="flex-1 p-8 md:p-24 flex flex-col justify-center">
-              <div className="max-w-md mx-auto w-full">
+            <div className="flex-1 overflow-y-auto p-8 md:p-24">
+              <div className="max-w-md mx-auto w-full min-h-full flex flex-col justify-center py-8">
                 <div className="md:hidden flex justify-center mb-8">
                   <Logo size="md" showText={true} />
                 </div>
@@ -2281,10 +2354,14 @@ export default function App() {
             <Home size={22} strokeWidth={activeTab === 'home' ? 2.5 : 2} />
             <span className="text-[10px] font-bold">{t.home}</span>
           </button>
-          <div className="relative -mt-12">
+          <div className="relative -mt-12 flex items-center gap-2">
              <label className="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200 active:scale-95 transition-transform cursor-pointer border-4 border-white">
                 <Camera size={28} />
                 <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleScanUpload} />
+             </label>
+             <label className="w-10 h-10 bg-white text-emerald-600 rounded-xl flex items-center justify-center shadow-md active:scale-95 transition-transform cursor-pointer border border-slate-100">
+                <ImageIcon size={20} />
+                <input type="file" accept="image/*" className="hidden" onChange={handleScanUpload} />
              </label>
           </div>
           <button onClick={() => setActiveTab('health')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'health' ? 'text-emerald-600' : 'text-slate-400'}`}>
