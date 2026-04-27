@@ -52,6 +52,19 @@ import {
 } from './types';
 import { analyzeProductLabel, chatWithAI, getIngredientDetails, checkCabinetInteractions, analyzeManualItem } from './services/geminiService';
 import { translations } from './translations';
+import { auth, loginWithGoogle, loginWithEmail, signUpWithEmail, logout, testConnection } from './lib/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { 
+  saveUserProfile, 
+  getUserProfile, 
+  getCabinetItems, 
+  saveCabinetItem, 
+  deleteCabinetItem,
+  getScanHistory,
+  saveScanResult,
+  getChatMessages,
+  saveChatMessage
+} from './services/firebaseService';
 
 // --- Components ---
 
@@ -78,6 +91,9 @@ const Badge = ({ status }: { status: SafetyStatus }) => {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'scan' | 'health' | 'chat'>('home');
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(true);
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [activeIngredient, setActiveIngredient] = useState<{name: string, details?: any} | null>(null);
@@ -86,8 +102,8 @@ export default function App() {
     const saved = localStorage.getItem('userProfile');
     return saved ? JSON.parse(saved) : {
       name: "",
-      age: 25,
-      weight: 70,
+      age: 0,
+      weight: 0,
       gender: "Other",
       allergies: [],
       medications: [],
@@ -147,6 +163,13 @@ export default function App() {
   const [newDiet, setNewDiet] = useState('');
   const [newPriority, setNewPriority] = useState('');
 
+  // Auth State
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [authError, setAuthError] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+
   // Feedback System
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
@@ -164,6 +187,36 @@ export default function App() {
   const t = translations[language] || translations.en;
 
   // --- Logic ---
+
+  const validatePassword = (pass: string) => {
+    const minLength = 8;
+    const hasUpper = /[A-Z]/.test(pass);
+    const hasNumber = /[0-9]/.test(pass);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pass);
+    return pass.length >= minLength && hasUpper && hasNumber && hasSpecial;
+  };
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    if (authMode === 'signup' && !validatePassword(password)) {
+      setAuthError(t.passwordRequirements || "Password must be at least 8 characters long, contain an uppercase letter, a number, and a special character.");
+      return;
+    }
+    
+    setAuthLoading(true);
+    try {
+      if (authMode === 'signup') {
+        await signUpWithEmail(email, password);
+      } else {
+        await loginWithEmail(email, password);
+      }
+    } catch (err: any) {
+      setAuthError(err.message || 'Authentication failed');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
 
   const validateProfile = (field: string, value: any, currentErrors = errors) => {
     const newErrors = { ...currentErrors };
@@ -215,8 +268,54 @@ export default function App() {
   };
 
   useEffect(() => {
+    testConnection();
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
+      setIsAuthLoading(false);
+      
+      if (firebaseUser) {
+        // Fetch User Profile
+        const profile = await getUserProfile(firebaseUser.uid);
+        const isProfileComplete = profile && profile.name && profile.age > 0 && profile.weight > 0;
+        
+        if (isProfileComplete) {
+          setUserProfile(profile);
+          setNeedsOnboarding(false);
+        } else {
+          setNeedsOnboarding(true);
+          setOnboardingStep(0);
+          if (profile) {
+            setUserProfile(profile);
+          }
+          // Pre-fill name from firebase if available and we don't have one
+          if (firebaseUser.displayName && !userProfile.name) {
+            setUserProfile(prev => ({ ...prev, name: firebaseUser.displayName || prev.name }));
+          }
+        }
+
+        // Fetch Cabinet
+        const items = await getCabinetItems(firebaseUser.uid);
+        setCabinet(items);
+
+        // Fetch History
+        const history = await getScanHistory(firebaseUser.uid);
+        setScanHistory(history);
+
+        // Fetch Chat
+        const messages = await getChatMessages(firebaseUser.uid);
+        setChatMessages(messages);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (user && !needsOnboarding) {
+      saveUserProfile(user.uid, userProfile);
+    }
     localStorage.setItem('userProfile', JSON.stringify(userProfile));
-  }, [userProfile]);
+  }, [userProfile, user, needsOnboarding]);
 
   useEffect(() => {
     localStorage.setItem('cabinet', JSON.stringify(cabinet));
@@ -291,6 +390,9 @@ export default function App() {
     };
 
     setCabinet(prev => [...prev, newItem]);
+    if (user) {
+      saveCabinetItem(user.uid, newItem);
+    }
     setCurrentResult(null);
     setInteractionWarnings([]);
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#10b981', '#34d399', '#ffffff'] });
@@ -312,6 +414,13 @@ export default function App() {
         cautionThreshold: 70
       }
     });
+    if (user) {
+      // Logic for hard reset in Firebase could be added here, 
+      // but for now we just clear the local state which triggers synced deletes if we had logic for it.
+      // Better to just logout or let the sync handle it.
+      // Actually, let's just logout and clear local if they really want to reset.
+      logout();
+    }
     setCabinet([]);
     setScanHistory([]);
     setChatMessages([]);
@@ -346,6 +455,9 @@ export default function App() {
         calories: res.calories
       };
       setCabinet(prev => [...prev, newItem]);
+      if (user) {
+        saveCabinetItem(user.uid, newItem);
+      }
       setIsAddingManual(false);
       confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#10b981', '#34d399', '#ffffff'] });
     } catch (err) {
@@ -358,11 +470,17 @@ export default function App() {
 
   const handleUpdateItem = (updated: CabinetItem) => {
     setCabinet(prev => prev.map(item => item.id === updated.id ? updated : item));
+    if (user) {
+      saveCabinetItem(user.uid, updated);
+    }
     setEditingItem(null);
   };
 
   const removeFromCabinet = (id: string) => {
     setCabinet(prev => prev.filter(item => item.id !== id));
+    if (user) {
+      deleteCabinetItem(user.uid, id);
+    }
   };
   const handleOnboardingNext = () => {
     if (onboardingStep === 0) {
@@ -383,6 +501,7 @@ export default function App() {
           <input 
             type="text" 
             placeholder={t.yourName} 
+            value={userProfile.name}
             className="w-full p-4 rounded-2xl bg-brand-cream/50 border border-brand-sage focus:ring-2 focus:ring-brand-olive outline-none transition-all font-bold"
             onChange={(e) => setUserProfile({...userProfile, name: e.target.value})}
           />
@@ -392,6 +511,7 @@ export default function App() {
                 <input 
                   type="number" 
                   placeholder={t.age} 
+                  value={userProfile.age || ''}
                   className={`w-full p-4 rounded-2xl bg-brand-cream/50 border ${errors.age ? 'border-rose-500' : 'border-brand-sage'} focus:ring-2 focus:ring-brand-olive outline-none transition-all font-bold`}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -406,6 +526,7 @@ export default function App() {
                   type="number" 
                   step="0.1"
                   placeholder={t.weight} 
+                  value={userProfile.weight || ''}
                   className={`w-full p-4 rounded-2xl bg-brand-cream/50 border ${errors.weight ? 'border-rose-500' : 'border-brand-sage'} focus:ring-2 focus:ring-brand-olive outline-none transition-all font-bold`}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -419,6 +540,7 @@ export default function App() {
           </div>
           <select 
             className="w-full p-4 rounded-2xl bg-brand-cream/50 border border-brand-sage focus:ring-2 focus:ring-brand-olive outline-none transition-all font-bold"
+            value={userProfile.gender}
             onChange={(e) => setUserProfile({...userProfile, gender: e.target.value})}
           >
             <option value="Male">{t.male}</option>
@@ -681,6 +803,9 @@ export default function App() {
         setCurrentResult(result);
         if (!result.isInvalid) {
           setScanHistory(prev => [result, ...prev]);
+          if (user) {
+            saveScanResult(user.uid, result);
+          }
 
           if (isMedicine) {
             setIsCheckingInteractions(true);
@@ -717,6 +842,9 @@ export default function App() {
     if (!text.trim()) return;
     const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', text, timestamp: new Date().toISOString() };
     setChatMessages(prev => [...prev, userMsg]);
+    if (user) {
+      saveChatMessage(user.uid, userMsg);
+    }
 
     if (!isOnline) {
       let offlineResponse = '';
@@ -737,6 +865,9 @@ export default function App() {
         timestamp: new Date().toISOString() 
       };
       setChatMessages(prev => [...prev, modelMsg]);
+      if (user) {
+        saveChatMessage(user.uid, modelMsg);
+      }
       return;
     }
 
@@ -750,6 +881,9 @@ export default function App() {
       );
       const modelMsg: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', text: aiResponse, timestamp: new Date().toISOString() };
       setChatMessages(prev => [...prev, modelMsg]);
+      if (user) {
+        saveChatMessage(user.uid, modelMsg);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -1620,6 +1754,79 @@ export default function App() {
       </header>
 
       <div className="flex flex-col gap-6">
+        {!user ? (
+          <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100 flex flex-col gap-4">
+             <div>
+               <h4 className="font-bold text-emerald-800 text-sm mb-1">{t.loginToStart}</h4>
+               <p className="text-[10px] text-emerald-600 font-medium">{t.personalizeWithFirebase}</p>
+             </div>
+             <form onSubmit={handleEmailAuth} className="w-full flex flex-col gap-2">
+                <input 
+                  type="email" 
+                  placeholder={t.email || "Email"}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+                <input 
+                  type="password" 
+                  placeholder={t.password || "Password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+                {authError && <div className="text-[10px] text-rose-600 font-medium">{authError}</div>}
+                <button 
+                  type="submit"
+                  disabled={authLoading}
+                  className="bg-emerald-600 text-white font-black py-2 rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform text-xs disabled:opacity-50 mt-1"
+                >
+                  {authLoading ? "..." : (authMode === 'login' ? (t.signIn || 'Sign In') : (t.signUp || 'Sign Up'))}
+                </button>
+             </form>
+             <button 
+                onClick={() => setAuthMode(m => m === 'login' ? 'signup' : 'login')}
+                className="text-[10px] text-emerald-700 font-bold hover:underline"
+              >
+                {authMode === 'login' ? (t.createAccount || "Create an account") : (t.alreadyHaveAccount || "Already have an account?")}
+              </button>
+              
+              <div className="w-full relative py-1 flex items-center justify-center">
+                <div className="absolute inset-x-0 flex items-center"><div className="w-full border-t border-emerald-200"></div></div>
+                <span className="relative px-2 bg-emerald-50 text-[8px] font-black text-emerald-600/50 uppercase tracking-widest">{t.or}</span>
+              </div>
+             <button 
+               onClick={loginWithGoogle}
+               className="bg-white text-slate-700 border border-slate-200 font-black py-2 rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform text-xs"
+             >
+               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" className="w-3 h-3" />
+               {t.signInWithGoogle}
+             </button>
+          </div>
+        ) : (
+          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 flex flex-col gap-4">
+             <div className="flex items-center gap-3">
+               <img src={user.photoURL || ''} alt="" className="w-10 h-10 rounded-full border-2 border-white shadow-sm" referrerPolicy="no-referrer" />
+               <div>
+                 <h4 className="font-bold text-slate-800 text-sm line-clamp-1">{user.displayName}</h4>
+                 <p className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                   <span className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></span>
+                   {t.syncingCloud}
+                 </p>
+               </div>
+             </div>
+             <button 
+               onClick={logout}
+               className="bg-white text-rose-600 border border-rose-100 font-black py-3 rounded-xl flex items-center justify-center gap-3 active:scale-95 transition-transform text-xs"
+             >
+               <RotateCcw size={14} />
+               {t.signOut}
+             </button>
+          </div>
+        )}
+
         <section className="bg-white p-6 rounded-3xl shadow-sm flex flex-col gap-4 border border-slate-100">
           <div className="flex items-center gap-4">
              <div className="w-16 h-16 bg-brand-forest text-brand-cream rounded-2xl flex items-center justify-center">
@@ -2104,34 +2311,125 @@ export default function App() {
                 <div className="md:hidden flex justify-center mb-8">
                   <Logo size="md" showText={true} />
                 </div>
-                <div className="flex gap-2 mb-12">
-                   {onboardingSteps.map((_, i) => (
-                     <div key={i} className={`h-1.5 flex-1 rounded-full bg-slate-100 overflow-hidden`}>
-                        <div className={`h-full bg-emerald-500 transition-all duration-500 ${onboardingStep >= i ? 'w-full' : 'w-0'}`} />
-                     </div>
-                   ))}
-                </div>
-                <h2 className="text-3xl font-black text-slate-800 mb-2">{onboardingSteps[onboardingStep].title}</h2>
-                <p className="text-slate-500 mb-10">{onboardingSteps[onboardingStep].subtitle}</p>
-                
-                {onboardingSteps[onboardingStep].content}
-
-                <div className="mt-12 flex gap-4">
-                  {onboardingStep > 0 && (
-                    <button 
-                      onClick={() => setOnboardingStep(prev => prev - 1)}
-                      className="px-8 py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold transition-transform active:scale-95"
+                <AnimatePresence mode="wait">
+                  {!user && !isGuest ? (
+                    <motion.div 
+                      key="login"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="flex flex-col gap-6"
                     >
-                      {t.back}
-                    </button>
+                      <div className="bg-emerald-50 p-8 rounded-[32px] border border-emerald-100 flex flex-col items-center text-center gap-6">
+                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+                           <ShieldCheck size={32} className="text-emerald-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-black text-slate-800 mb-2">{t.loginToStart}</h3>
+                          <p className="text-xs text-slate-500 leading-relaxed">{t.personalizeWithFirebase}</p>
+                        </div>
+                        
+                        <form onSubmit={handleEmailAuth} className="w-full flex flex-col gap-3">
+                          <input 
+                            type="email" 
+                            placeholder={t.email || "Email"}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          />
+                          <input 
+                            type="password" 
+                            placeholder={t.password || "Password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          />
+                          {authError && <div className="text-xs text-rose-600 font-medium text-left">{authError}</div>}
+                          <button 
+                            type="submit"
+                            disabled={authLoading}
+                            className="w-full bg-emerald-600 text-white font-black py-4 px-6 rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all shadow-sm disabled:opacity-50"
+                          >
+                            {authLoading ? "..." : (authMode === 'login' ? (t.signIn || 'Sign In') : (t.signUp || 'Sign Up'))}
+                          </button>
+                        </form>
+
+                        <button 
+                          onClick={() => setAuthMode(m => m === 'login' ? 'signup' : 'login')}
+                          className="text-xs text-emerald-700 font-bold hover:underline"
+                        >
+                          {authMode === 'login' ? (t.createAccount || "Create an account") : (t.alreadyHaveAccount || "Already have an account?")}
+                        </button>
+                        
+                        <div className="w-full relative py-2 flex items-center justify-center">
+                          <div className="absolute inset-x-0 flex items-center"><div className="w-full border-t border-emerald-200"></div></div>
+                          <span className="relative px-4 bg-emerald-50 text-[10px] font-black text-emerald-600/50 uppercase tracking-widest">{t.or}</span>
+                        </div>
+
+                        <button 
+                          onClick={loginWithGoogle}
+                          className="w-full bg-white text-slate-800 border border-slate-200 font-black py-4 px-6 rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all shadow-sm"
+                        >
+                          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" className="w-5 h-5" />
+                          {t.signInWithGoogle}
+                        </button>
+                      </div>
+
+                      <div className="relative py-4 flex items-center justify-center">
+                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100"></div></div>
+                        <span className="relative px-4 bg-white text-[10px] font-black text-slate-300 uppercase tracking-widest">{t.or}</span>
+                      </div>
+
+                      <button 
+                        onClick={() => {
+                          setIsGuest(true);
+                          setOnboardingStep(0);
+                        }}
+                        className="w-full bg-slate-900 text-white font-black py-4 rounded-2xl active:scale-95 transition-transform"
+                      >
+                        {t.continueAsGuest || 'Continue as Guest'}
+                      </button>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="steps"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                    >
+                      <div className="flex gap-2 mb-12">
+                         {onboardingSteps.map((_, i) => (
+                           <div key={i} className={`h-1.5 flex-1 rounded-full bg-slate-100 overflow-hidden`}>
+                              <div className={`h-full bg-emerald-500 transition-all duration-500 ${onboardingStep >= i ? 'w-full' : 'w-0'}`} />
+                           </div>
+                         ))}
+                      </div>
+                      <h2 className="text-3xl font-black text-slate-800 mb-2">{onboardingSteps[onboardingStep].title}</h2>
+                      <p className="text-slate-500 mb-10">{onboardingSteps[onboardingStep].subtitle}</p>
+                      
+                      {onboardingSteps[onboardingStep].content}
+
+                      <div className="mt-12 flex gap-4">
+                        {onboardingStep > 0 && (
+                          <button 
+                            onClick={() => setOnboardingStep(prev => prev - 1)}
+                            className="px-8 py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold transition-transform active:scale-95"
+                          >
+                            {t.back}
+                          </button>
+                        )}
+                        <button 
+                          onClick={onboardingStep < onboardingSteps.length - 1 ? handleOnboardingNext : finishOnboarding}
+                          className="flex-1 bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-xl shadow-emerald-100 active:scale-95 transition-transform"
+                        >
+                          {onboardingStep === onboardingSteps.length - 1 ? t.startScanning : t.continue}
+                        </button>
+                      </div>
+                    </motion.div>
                   )}
-                  <button 
-                    onClick={onboardingStep < onboardingSteps.length - 1 ? handleOnboardingNext : finishOnboarding}
-                    className="flex-1 bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-xl shadow-emerald-100 active:scale-95 transition-transform"
-                  >
-                    {onboardingStep === onboardingSteps.length - 1 ? t.startScanning : t.continue}
-                  </button>
-                </div>
+                </AnimatePresence>
               </div>
             </div>
           </motion.div>

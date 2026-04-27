@@ -34,6 +34,7 @@ export interface UserProfile {
     priorityIngredients: string[];
     cautionThreshold: number; // 0-100
   };
+  updatedAt?: any;
 }
 
 export interface IngredientRisk {

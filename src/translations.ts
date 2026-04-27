@@ -167,7 +167,19 @@ export const translations = {
     accurate: "Accurate",
     inaccurate: "Inaccurate",
     uploadImage: "Upload Image",
-    takePhoto: "Take Photo"
+    takePhoto: "Take Photo",
+    signInWithGoogle: "Sign in with Google",
+    signOut: "Sign Out",
+    syncingCloud: "Syncing with Health Cloud...",
+    personalizeWithFirebase: "Sign in to save your history and health profile across devices.",
+    loginToStart: "Login to Secure Your Health Data",
+    email: "Email Address",
+    password: "Password",
+    signIn: "Sign In",
+    signUp: "Sign Up",
+    passwordRequirements: "Password must be at least 8 characters long, contain an uppercase letter, a number, and a special character.",
+    createAccount: "Create an account",
+    alreadyHaveAccount: "Already have an account?"
   },
   hi: {
     home: "होम",

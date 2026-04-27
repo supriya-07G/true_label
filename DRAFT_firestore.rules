@@ -1,0 +1,108 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation Helpers
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['name', 'age', 'weight', 'gender', 'allergies', 'medications', 'chronicIllnesses', 'dietaryRestrictions', 'healthGoals', 'scanSettings', 'updatedAt'])
+        && data.keys().size() == 11
+        && data.name is string && data.name.size() <= 100
+        && data.age is number && data.age >= 0 && data.age <= 120
+        && data.weight is number && data.weight >= 0 && data.weight <= 500
+        && data.gender is string && data.gender.size() <= 20
+        && data.allergies is list && data.allergies.size() <= 50
+        && data.medications is list && data.medications.size() <= 50
+        && data.chronicIllnesses is list && data.chronicIllnesses.size() <= 50
+        && data.dietaryRestrictions is list && data.dietaryRestrictions.size() <= 50
+        && data.healthGoals is list && data.healthGoals.size() <= 50
+        && data.scanSettings is map
+        && data.scanSettings.priorityIngredients is list && data.scanSettings.priorityIngredients.size() <= 50
+        && data.scanSettings.cautionThreshold is number
+        && data.updatedAt == request.time;
+    }
+
+    function isValidCabinetItem(data) {
+      return data.keys().hasAll(['type', 'name', 'expiryDate', 'safetyScore', 'status', 'addedAt', 'ingredients'])
+        && data.keys().size() >= 7 && data.keys().size() <= 8
+        && data.type in ['medicine', 'food']
+        && data.name is string && data.name.size() <= 200
+        && data.expiryDate is string && data.expiryDate.size() <= 100
+        && data.safetyScore is number
+        && data.status in ['safe', 'caution', 'unsafe']
+        && data.addedAt is timestamp
+        && data.ingredients is list && data.ingredients.size() <= 100;
+    }
+
+    function isValidScanResult(data) {
+      return data.keys().hasAll(['productName', 'safetyScore', 'status', 'summary', 'safetyNote', 'ingredients', 'alternatives', 'restrictedCountries', 'expiryConfidence', 'scanDate'])
+        && data.productName is string && data.productName.size() <= 200
+        && data.safetyScore is number
+        && data.status in ['safe', 'caution', 'unsafe']
+        && data.summary is string && data.summary.size() <= 2000
+        && data.safetyNote is string && data.safetyNote.size() <= 2000
+        && data.ingredients is list && data.ingredients.size() <= 100
+        && data.alternatives is list && data.alternatives.size() <= 10
+        && data.restrictedCountries is list && data.restrictedCountries.size() <= 200
+        && data.expiryConfidence in ['Low', 'Medium', 'High']
+        && data.scanDate is timestamp;
+    }
+
+    function isValidChatMessage(data) {
+      return data.keys().hasAll(['role', 'text', 'timestamp'])
+        && data.keys().size() == 3
+        && data.role in ['user', 'model']
+        && data.text is string && data.text.size() <= 5000
+        && data.timestamp is timestamp;
+    }
+
+    // Rules
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserProfile(incoming());
+      allow update: if isOwner(userId) && isValidUserProfile(incoming());
+
+      match /cabinet/{itemId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(itemId) && isValidCabinetItem(incoming());
+        allow update: if isOwner(userId) && isValidId(itemId) && isValidCabinetItem(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      match /scanHistory/{scanId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(scanId) && isValidScanResult(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      match /chatMessages/{messageId} {
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(messageId) && isValidChatMessage(incoming());
+      }
+    }
+  }
+}
