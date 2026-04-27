@@ -6,40 +6,50 @@
 
 ---
 
-## 🎯 Our Mission
-TRUE LABEL transforms generic product information into personalized health intelligence. By combining advanced AI with individual health profiles, we enable users to make informed consumption decisions that align with their specific health needs, allergies, medications, and wellness goals
-
-## How True Label works
->The platform uses Agentic RAG (Retrieval-Augmented Generation) to provide context-aware, personalized responses rather than generic information. This ensures that every product analysis considers the user's unique health fingerprint, creating a truly customized safety system.
-
-
-> [!IMPORTANT]
-> True Label is more than a scanner; it is a personalized wellness guardian that understands your specific health needs before evaluating any product.
+## 📌 Overview
+**True Label** is a cutting-edge web application designed to protect users from harmful ingredients in food and medication. Unlike generic scanners, True Label uses clinical precision to map product labels against a user's **unique health profile**—including allergies, chronic illnesses, current medications, and specific health goals.
 
 ---
 
-## 🌟 Core Features
+##  The Problem
+In today’s world, product labels provide only generic information that doesn't account for individual needs. Consumers with specific allergies, chronic health conditions, or complex medication regimens face a constant risk of accidental consumption of harmful ingredients. Generic warnings are often overlooked, leading to preventable health crises and a lack of confidence in daily consumption decisions.
 
-### 📸 Smart Product Scanning
-Receive an instant, 100% personalized safety verdict for any food or medicine.
-*   **Contextual Evaluation**: Understands and interprets complex ingredient lists with high precision.
-*   **Precision Safety Scoring**: A 0-100 score calculated by cross-referencing product data with your documented health profile.
-*   **Instant Visual Safety Status**:
-    - 🟢 **Safe**: Perfectly aligned with your health goals and profile.
-    - 🟡 **Caution**: Minor conflict with preferences or high levels of sensitivities (Sugar, Sodium, etc.).
-    - 🔴 **Unsafe**: Direct allergen match or documented health risk.
+## ✅ Our Solution: TRUE LABEL
+TRUE LABEL transforms generic product information into **personalized health intelligence**. By combining advanced processing with individual health profiles, we enable users to make informed consumption decisions that align with their specific health needs, allergies, medications, and wellness goals.
 
-### 💊 The Health Cabinet
-A comprehensive digital inventory of your physical medicines and foods.
-*   **Safety Shield**: Automatically monitors your entire inventory for potential health conflicts.
-*   **Health Protection**: Tracks shelf life for every item with smart notifications to prevent consumption of expired products.
-*   **Organized Management**: Efficiently separate and manage your medical and nutritional assets in one place.
+The platform provides context-aware, personalized responses rather than generic information. This ensures that every product analysis considers the user's **unique health fingerprint**, creating a truly customized safety system.
 
-### 🗣️ Safety Assistant
-Your dedicated health companion for real-time guidance.
-*   **Interactive Support**: Ask questions about product risks or health safety.
-*   **Language Support**: Fully localized to provide support in multiple regional languages.
-*   **Accessibility**: Integrated audio output to read back safety reports for better user convenience.
+> *"Make health decisions personalized, intelligent, and preventive."*
+
+---
+
+## 🌟 Comprehensive Features
+
+### 📸 Smart Product Analysis
+*   **Product Scanning**: Users can scan product labels for food and medicines using their smartphone camera.
+*   **Personalized Analysis**: Processes ingredients against the user's health profile to provide context-aware insights.
+*   **Safety Intelligence**: Provides safety scores, compatibility ratings, and clinical recommendations tailored to individual needs.
+*   **Visual Status Indicators**: Instant Green (Safe), Yellow (Caution), or Red (Unsafe) badges.
+*   **Ingredient Deep Dive**: Explore the common uses and health implications of any specific ingredient.
+*   **Smart Alternatives**: Get recommendations for safer product alternatives aligned with your specific health goals.
+*   **Global Ban Monitoring**: Automatically detects substances that are restricted or banned in various countries.
+
+### 💊 The Health Cabinet & Inventory
+*   **Dual Inventory System**: Separate, organized management for your Medical and Nutritional household assets.
+*   **Manual Entry Support**: Add items to your cabinet even without a label using intelligent name-based analysis.
+*   **Interaction Shield**: Real-time monitoring for potential Drug-Drug and Drug-Food conflicts across your entire cabinet inventory.
+*   **Smart Expiry Tracking**: Monitor the shelf life of every product with configurable alerts and countdowns.
+
+### 🗣️ Safety Assistant & Accessibility
+*   **Conversational Guidance**: Ask complex health or product questions and receive context-aware advice.
+*   **Multilingual Support**: Fully localized in multiple languages (English, Hindi, Telugu) to cater to diverse users.
+*   **Voice Integration**: Use microphone commands to interact with the assistant or search for items.
+*   **Audio Synthesis**: Built-in audio playback for safety reports and interaction warnings to improve accessibility.
+*   **Offline Resilience**: Access core safety profiles, cabinet data, and basic interaction warnings even without an internet connection.
+
+### 👤 Personalized Health Profile
+*   **Comprehensive Onboarding**: Setup a precise health profile including age, weight, allergies, medications, and chronic conditions.
+*   **User Profiles & Sync**: Securely sync your scan history, health cabinet, and preferences across all your devices.
 
 ---
 
@@ -57,15 +67,14 @@ True Label's core value lies in its ability to process your unique health contex
 
 ## 🔒 Privacy & Security
 We take your data security and privacy seriously.
-*   **Your Data, Your Control**: Your health profile is used exclusively to power the safety analysis during your active session.
-*   **Secure Infrastructure**: All information is handled with modern encryption and security protocols to ensure your data stays private.
-*   **Commitment to Privacy**: We never share or sell your personal health information to third parties.
+*   **Local-First Logic**: Core profile preferences are cached locally for maximum performance and privacy.
+*   **Secure Infrastructure**: High-tier encryption and security protocols ensure that your sensitive health data remains safe.
+*   **Zero-Third-Party Sharing**: Your personal health profile is used exclusively for your session and is never sold or shared.
 
 ---
 
 <div align="center">
-Built  for a safer, healthier world.
+Built for a safer, healthier world.
 <br/>
 <i>Empowering safer choices, one label at a time.</i>
 </div>
-
