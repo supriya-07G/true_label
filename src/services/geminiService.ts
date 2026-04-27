@@ -254,6 +254,11 @@ export const checkCabinetInteractions = async (
     User Chronic Illnesses: ${userProfile.chronicIllnesses.join(", ")}
     
     Output must be a JSON array of strings. Each string should be a clear, concise interaction warning.
+    Each warning MUST:
+    - Identify the specific ingredient or product causing the conflict.
+    - Explicitly mention which of the user's current items (from Cabinet or Medications) it interacts with.
+    - Conclude with a suggestion to consult a pharmacist.
+    
     If no interactions found, return an empty array [].
     Warnings should be in ${language === 'te' ? 'Telugu' : language === 'hi' ? 'Hindi' : 'English'}.
   `;

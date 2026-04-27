@@ -1059,6 +1059,13 @@ export default function App() {
                       <li key={i} className="text-xs text-rose-900 font-bold leading-tight">• {w}</li>
                     ))}
                   </ul>
+                  <div className="mt-3 pt-3 border-t border-rose-200">
+                    <p className="text-[10px] text-rose-700 font-black uppercase tracking-wider">
+                      {language === 'en' ? '⚠️ Clinical Note: Pharmacist Consultation Advised' : 
+                       language === 'hi' ? '⚠️ नैदानिक नोट: फार्मासिस्ट परामर्श की सलाह दी जाती है' : 
+                       '⚠️ క్లినికల్ నోట్: ఫార్మసిస్ట్ సంప్రదింపులు సిఫార్సు చేయబడ్డాయి'}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -1278,6 +1285,13 @@ export default function App() {
                 {cabinetWarnings.map((int, i) => (
                   <p key={i} className="text-sm text-amber-900 font-medium leading-relaxed">{int}</p>
                 ))}
+              </div>
+              <div className="pt-2 border-t border-amber-200">
+                <p className="text-[10px] text-amber-700 font-black uppercase tracking-wider">
+                  {language === 'en' ? '⚠️ Consult your pharmacist for safety' : 
+                   language === 'hi' ? '⚠️ सुरक्षा के लिए अपने फार्मासिస్ట్ से सलाह लें' : 
+                   '⚠️ భద్రత కోసం మీ ఫార్మసిస్ట్‌ను సంప్రదించండి'}
+                </p>
               </div>
             </section>
           )}
