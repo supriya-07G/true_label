@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Logo } from './components/Logo';
 import { 
   Camera, 
   Home, 
@@ -27,6 +28,8 @@ import {
   Languages,
   X,
   Volume2,
+  VolumeX,
+  Square,
   Edit2,
   Trash2,
   RotateCcw,
@@ -43,6 +46,7 @@ import {
   ChatMessage 
 } from './types';
 import { analyzeProductLabel, chatWithAI, getIngredientDetails, checkCabinetInteractions, analyzeManualItem } from './services/geminiService';
+import { translations } from './translations';
 
 // --- Components ---
 
@@ -127,8 +131,18 @@ export default function App() {
 
   const [historyFilterType, setHistoryFilterType] = useState<'all' | 'medicine' | 'food'>('all');
   const [historyFilterDate, setHistoryFilterDate] = useState<'all' | 'today' | 'week' | 'month'>('all');
-
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  // New list item inputs
+  const [newAllergy, setNewAllergy] = useState('');
+  const [newMed, setNewMed] = useState('');
+  const [newIllness, setNewIllness] = useState('');
+  const [newGoal, setNewGoal] = useState('');
+  const [newDiet, setNewDiet] = useState('');
+  const [newPriority, setNewPriority] = useState('');
+
+  const t = translations[language] || translations.en;
 
   // --- Logic ---
 
@@ -212,6 +226,10 @@ export default function App() {
 
   const checkCabinetSafety = async () => {
     if (cabinet.length < 2) return;
+    if (!isOnline) {
+      setCabinetWarnings(["Offline Mode: Safety interaction check is unavailable."]);
+      return;
+    }
     setIsCheckingCabinet(true);
     setCabinetWarnings([]);
     try {
@@ -260,33 +278,40 @@ export default function App() {
   };
 
   const resetData = () => {
-    if (confirm("Are you sure you want to reset all data? This cannot be undone.")) {
-      setUserProfile({
-        name: "",
-        age: 25,
-        weight: 70,
-        gender: "Other",
-        allergies: [],
-        medications: [],
-        chronicIllnesses: [],
-        dietaryRestrictions: [],
-        healthGoals: [],
-        scanSettings: {
-          priorityIngredients: ["Sugar", "Sodium", "Trans Fat"],
-          cautionThreshold: 70
-        }
-      });
-      setCabinet([]);
-      setScanHistory([]);
-      setChatMessages([]);
-      setNeedsOnboarding(true);
-      setOnboardingStep(0);
-      setShowProfile(false);
-    }
+    setUserProfile({
+      name: "",
+      age: 25,
+      weight: 70,
+      gender: "Other",
+      allergies: [],
+      medications: [],
+      chronicIllnesses: [],
+      dietaryRestrictions: [],
+      healthGoals: [],
+      scanSettings: {
+        priorityIngredients: ["Sugar", "Sodium", "Trans Fat"],
+        cautionThreshold: 70
+      }
+    });
+    setCabinet([]);
+    setScanHistory([]);
+    setChatMessages([]);
+    localStorage.removeItem('userProfile');
+    localStorage.removeItem('cabinet');
+    localStorage.removeItem('scanHistory');
+    localStorage.removeItem('chatMessages');
+    setNeedsOnboarding(true);
+    setOnboardingStep(0);
+    setShowProfile(false);
+    setShowResetConfirm(false);
   };
 
   const handleManualAdd = async (name: string) => {
     if (!name || !activeCabinetView) return;
+    if (!isOnline) {
+      alert("This action requires an internet connection. Please try again when online.");
+      return;
+    }
     setIsManualLoading(true);
     try {
       const res = await analyzeManualItem(name, activeCabinetView, userProfile, language);
@@ -500,14 +525,95 @@ export default function App() {
           ))}
         </div>
       )
+    },
+    {
+      title: "Scan Preferences",
+      subtitle: "Customize how we analyze your products.",
+      content: (
+        <div className="flex flex-col gap-6">
+          <div>
+            <label className="text-[10px] font-black uppercase text-slate-400 mb-3 block">Priority Ingredient Checks</label>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {['Sugar', 'Sodium', 'Trans Fat', 'Artificial Colors', 'Preservatives', 'MSG'].map(p => {
+                const isSelected = userProfile.scanSettings.priorityIngredients.includes(p);
+                return (
+                  <button
+                    key={p}
+                    onClick={() => {
+                      const newPriorities = isSelected
+                        ? userProfile.scanSettings.priorityIngredients.filter(x => x !== p)
+                        : [...userProfile.scanSettings.priorityIngredients, p];
+                      setUserProfile({...userProfile, scanSettings: {...userProfile.scanSettings, priorityIngredients: newPriorities}});
+                    }}
+                    className={`text-xs px-3 py-1.5 rounded-xl font-bold transition-all border ${isSelected ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-100' : 'bg-white border-slate-200 text-slate-500'}`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+            </div>
+            <input 
+              type="text"
+              placeholder="Add other ingredient (e.g. Aspartame)"
+              className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 text-sm"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const val = e.currentTarget.value.trim();
+                  if (val && !userProfile.scanSettings.priorityIngredients.includes(val)) {
+                    setUserProfile({
+                      ...userProfile, 
+                      scanSettings: {
+                        ...userProfile.scanSettings, 
+                        priorityIngredients: [...userProfile.scanSettings.priorityIngredients, val]
+                      }
+                    });
+                  }
+                  e.currentTarget.value = '';
+                }
+              }}
+            />
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-[10px] font-black uppercase text-slate-400">Caution Sensitivity</label>
+              <span className="text-xs font-bold text-emerald-600">{userProfile.scanSettings.cautionThreshold}%</span>
+            </div>
+            <p className="text-xs text-slate-500 mb-4">Lower sensitivity means we warn you more often.</p>
+            <input 
+              type="range" 
+              min="1" 
+              max="100" 
+              value={userProfile.scanSettings.cautionThreshold}
+              onChange={(e) => setUserProfile({
+                ...userProfile, 
+                scanSettings: {
+                  ...userProfile.scanSettings, 
+                  cautionThreshold: parseInt(e.target.value) || 70
+                }
+              })}
+              className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+            />
+            <div className="flex justify-between mt-1">
+              <span className="text-[10px] font-bold text-slate-400">Strict</span>
+              <span className="text-[10px] font-bold text-slate-400">Lenient</span>
+            </div>
+          </div>
+        </div>
+      )
     }
   ];
 
   // --- Voice & TTS ---
   const speakResult = (text: string) => {
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = language === Language.TELUGU ? 'te-IN' : language === Language.HINDI ? 'hi-IN' : 'en-US';
     window.speechSynthesis.speak(utterance);
+  };
+
+  const stopAudio = () => {
+    window.speechSynthesis.cancel();
   };
 
   const startVoiceSearch = () => {
@@ -526,6 +632,10 @@ export default function App() {
   // --- Logic ---
 
   const handleScanUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isOnline) {
+      alert("Deep AI safety scanning requires an internet connection. Please connect and try again.");
+      return;
+    }
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -583,14 +693,45 @@ export default function App() {
     setChatMessages(prev => [...prev, userMsg]);
 
     if (!isOnline) {
-      const offlineMsg = language === 'te' ? 'నేను ప్రస్తుతం ఆఫ్‌లైన్‌లో ఉన్నాను. ఇంటర్నెట్ పునరుద్ధరించబడినప్పుడు నేను మీకు సహాయం చేయగలను.' : 
-                        language === 'hi' ? 'मैं अभी ऑफलाइन हूँ। इंटरनेट उपलब्ध होने पर मैं आपकी सहायता कर सकता हूँ।' : 
-                        'I am currently offline. I can assist you once the internet connection is restored.';
+      let offlineResponse = '';
+      const tLower = text.toLowerCase();
+      
+      const tlMsg = {
+        allergy: 'మీకు అలెర్జీలు ఉన్నాయి: ',
+        none: 'ఏమీ లేదు',
+        cab: 'మీ క్యాబినెట్‌లో ',
+        cab2: ' వస్తువులు ఉన్నాయి. ',
+        def: 'నేను ఆఫ్‌లైన్‌లో ఉన్నాను. కానీ మీరు నేను క్యాబినెట్ లేదా ప్రొఫైల్ గురించి అడగవచ్చు.'
+      };
+      const hiMsg = {
+        allergy: 'आपको एलर्जी है: ',
+        none: 'कोई नहीं',
+        cab: 'आपके कैबिनेट में ',
+        cab2: ' आइटम हैं। ',
+        def: 'मैं ऑफ़लाइन हूँ। लेकिन आप मुझसे कैबिनेट या प्रोफ़ाइल के बारे में पूछ सकते हैं।'
+      };
+      const enMsg = {
+        allergy: 'Your allergies are: ',
+        none: 'None',
+        cab: 'You have ',
+        cab2: ' items in your cabinet. ',
+        def: 'I am offline. But you can still ask me about your cabinet or profile.'
+      };
+
+      const msg = language === 'te' ? tlMsg : language === 'hi' ? hiMsg : enMsg;
+
+      if (tLower.includes('allerg') || tLower.includes('అలెర్జీ') || tLower.includes('एलर्जी')) {
+        offlineResponse = msg.allergy + (userProfile.allergies.length ? userProfile.allergies.join(", ") : msg.none);
+      } else if (tLower.includes('cabine') || tLower.includes('క్యాబినెట్') || tLower.includes('कैबिनेट')) {
+        offlineResponse = msg.cab + cabinet.length + msg.cab2 + cabinet.map(i => i.name).join(", ");
+      } else {
+        offlineResponse = msg.def;
+      }
       
       const modelMsg: ChatMessage = { 
         id: (Date.now() + 1).toString(), 
         role: 'model', 
-        text: offlineMsg, 
+        text: offlineResponse, 
         timestamp: new Date().toISOString() 
       };
       setChatMessages(prev => [...prev, modelMsg]);
@@ -631,6 +772,10 @@ export default function App() {
   };
 
   const handleIngredientClick = async (name: string) => {
+    if (!isOnline) {
+      alert("Ingredient analysis requires an internet connection. Please connect and try again.");
+      return;
+    }
     setActiveIngredient({ name });
     setIsIngredientLoading(true);
     try {
@@ -649,12 +794,10 @@ export default function App() {
     <div className="flex flex-col gap-6 p-4 pb-24">
           <header className="flex justify-between items-center mt-2">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand-olive rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-olive/20 border border-brand-mint/30">
-            <ShieldCheck size={24} />
-          </div>
+          <Logo size="sm" showText={false} />
           <div>
-            <h1 className="font-black text-xl text-brand-forest tracking-tight">TRUE LABEL</h1>
-            <p className="text-[10px] text-brand-olive font-black uppercase tracking-widest leading-none">Wellness Discovery</p>
+            <h1 className="font-black text-xl text-[#415a1f] tracking-widest uppercase font-serif">TRUE LABEL</h1>
+            <p className="text-[10px] text-brand-olive font-black uppercase tracking-widest leading-none">{t.wellnessDiscovery}</p>
           </div>
         </div>
         <button onClick={() => setShowProfile(true)} className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
@@ -714,13 +857,13 @@ export default function App() {
 
       <section className="flex flex-col gap-3">
         <div className="flex justify-between items-center px-1">
-          <h3 className="font-bold text-slate-800">Recent Scans</h3>
-          <button onClick={() => setShowHistory(true)} className="text-emerald-600 text-sm font-semibold">See all</button>
+          <h3 className="font-bold text-slate-800">{t.recentScans}</h3>
+          <button onClick={() => setShowHistory(true)} className="text-emerald-600 text-sm font-semibold">{t.seeAll}</button>
         </div>
         {scanHistory.length === 0 ? (
           <div className="bg-slate-50 border border-slate-100 border-dashed rounded-3xl p-8 flex flex-col items-center justify-center text-slate-400 gap-2">
             <Package size={32} strokeWidth={1.5} />
-            <p className="text-sm font-medium">No history yet</p>
+            <p className="text-sm font-medium">{t.noHistory}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -1005,15 +1148,23 @@ export default function App() {
         
         {/* Persistent Bottom Actions */}
         <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-xl border-t border-slate-100 z-50 flex items-center gap-4">
-          <button 
-            onClick={() => speakResult(`${res.productName}. Safety Score ${res.safetyScore} percent. ${res.summary}`)} 
-            className="flex-1 bg-slate-900 text-white font-black py-5 rounded-[1.5rem] shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-3 text-xs tracking-widest"
-          >
-            <Volume2 size={20} /> AUDIO VERSION
-          </button>
+          <div className="flex-1 flex flex-col gap-2">
+            <button 
+              onClick={() => speakResult(`${res.productName}. Safety Score ${res.safetyScore} percent. ${res.summary}`)} 
+              className="w-full bg-slate-900 text-white font-black py-3 rounded-xl shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-2 text-[10px] tracking-widest"
+            >
+              <Volume2 size={16} /> PLAY AUDIO
+            </button>
+            <button 
+              onClick={stopAudio} 
+              className="w-full bg-slate-100 text-slate-800 font-bold py-2 rounded-xl shadow-sm border border-slate-200 active:scale-95 transition-transform flex items-center justify-center gap-2 text-[10px] tracking-widest"
+            >
+              <Square size={12} className="fill-slate-800" /> STOP
+            </button>
+          </div>
           <button 
             onClick={() => addToCabinet(res)}
-            className="w-20 h-20 bg-emerald-600 text-white rounded-[2rem] shadow-2xl flex flex-col items-center justify-center active:scale-90 transition-transform shadow-emerald-200 border-4 border-white"
+            className="w-20 h-20 bg-emerald-600 text-white rounded-[2rem] shadow-2xl flex flex-col items-center justify-center active:scale-90 transition-transform shadow-emerald-200 border-4 border-white shrink-0"
           >
             <Plus size={32} />
             <span className="text-[8px] font-black uppercase tracking-tighter mt-1">CABINET</span>
@@ -1309,7 +1460,7 @@ export default function App() {
     <div className="flex flex-col h-screen bg-slate-50 pb-24">
       <header className="p-6 bg-white flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-slate-800">Safety Assistant</h2>
+          <h2 className="text-xl font-bold text-slate-800">{t.safetyAssistant || "Safety Assistant"}</h2>
           {!isOnline && (
             <div className="flex items-center gap-1.5 bg-rose-50 text-rose-600 px-3 py-1 rounded-full border border-rose-100">
               <WifiOff size={12} />
@@ -1421,62 +1572,101 @@ export default function App() {
           </div>
 
           {isEditingProfile && (
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Age</label>
-                <input 
-                  type="number" 
-                  value={userProfile.age}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setUserProfile({...userProfile, age: parseInt(val) || 0});
-                    validateProfile('age', val);
-                  }}
-                  className={`w-full bg-slate-50 border ${errors.age ? 'border-rose-500' : 'border-slate-200'} p-3 rounded-xl font-bold text-slate-800`}
-                />
-                {errors.age && <span className="text-[9px] text-rose-500 font-bold">{errors.age}</span>}
+            <div className="flex flex-col gap-4 mt-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Age</label>
+                  <input 
+                    type="number" 
+                    value={userProfile.age}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setUserProfile({...userProfile, age: parseInt(val) || 0});
+                      validateProfile('age', val);
+                    }}
+                    className={`w-full bg-slate-50 border ${errors.age ? 'border-rose-500' : 'border-slate-200'} p-3 rounded-xl font-bold text-slate-800`}
+                  />
+                  {errors.age && <span className="text-[9px] text-rose-500 font-bold">{errors.age}</span>}
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Weight (kg)</label>
+                  <input 
+                    type="number" 
+                    step="0.1"
+                    value={userProfile.weight}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setUserProfile({...userProfile, weight: parseFloat(val) || 0});
+                      validateProfile('weight', val);
+                    }}
+                    className={`w-full bg-slate-50 border ${errors.weight ? 'border-rose-500' : 'border-slate-200'} p-3 rounded-xl font-bold text-slate-800`}
+                  />
+                  {errors.weight && <span className="text-[9px] text-rose-500 font-bold">{errors.weight}</span>}
+                </div>
               </div>
+              
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Weight (kg)</label>
-                <input 
-                  type="number" 
-                  step="0.1"
-                  value={userProfile.weight}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setUserProfile({...userProfile, weight: parseFloat(val) || 0});
-                    validateProfile('weight', val);
-                  }}
-                  className={`w-full bg-slate-50 border ${errors.weight ? 'border-rose-500' : 'border-slate-200'} p-3 rounded-xl font-bold text-slate-800`}
-                />
-                {errors.weight && <span className="text-[9px] text-rose-500 font-bold">{errors.weight}</span>}
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gender</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {['Male', 'Female', 'Other'].map(g => (
+                    <button 
+                      key={g}
+                      onClick={() => setUserProfile({...userProfile, gender: g})}
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all ${userProfile.gender === g ? 'bg-slate-800 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-500'}`}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
-            <button 
-              onClick={() => {
-                if (isEditingProfile) {
-                  if (validateAllProfile()) {
-                    setIsEditingProfile(false);
+          {showResetConfirm ? (
+            <div className="flex flex-col gap-3 mt-2">
+              <p className="text-xs text-rose-600 font-bold text-center bg-rose-50 p-3 rounded-lg border border-rose-100">
+                Are you sure? All profile data and scan history will be permanently deleted.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <button 
+                  onClick={() => setShowResetConfirm(false)}
+                  className="bg-slate-100 text-slate-600 text-[10px] font-black py-3 rounded-xl active:scale-95 transition-transform uppercase tracking-widest"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={resetData}
+                  className="bg-rose-600 text-white text-[10px] font-black py-3 rounded-xl shadow-lg active:scale-95 transition-transform uppercase tracking-widest"
+                >
+                  Confirm Reset
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <button 
+                onClick={() => {
+                  if (isEditingProfile) {
+                    if (validateAllProfile()) {
+                      setIsEditingProfile(false);
+                    }
+                  } else {
+                    setIsEditingProfile(true);
                   }
-                } else {
-                  setIsEditingProfile(true);
-                }
-              }}
-              disabled={isEditingProfile && Object.keys(errors).length > 0}
-              className={`${isEditingProfile ? 'bg-brand-olive' : 'bg-slate-900'} text-white text-[10px] font-black py-3 rounded-xl shadow-lg active:scale-95 transition-transform uppercase tracking-widest disabled:opacity-50`}
-            >
-              {isEditingProfile ? 'Save Details' : 'Edit Details'}
-            </button>
-            <button 
-              onClick={isEditingProfile ? () => setIsEditingProfile(false) : resetData}
-              className={`${isEditingProfile ? 'bg-slate-100 text-slate-600' : 'bg-rose-50 text-rose-600'} text-[10px] font-black py-3 rounded-xl border border-rose-100 active:scale-95 transition-transform uppercase tracking-widest flex items-center justify-center gap-2`}
-            >
-              {isEditingProfile ? 'Cancel' : <><RotateCcw size={12} /> Reset Data</>}
-            </button>
-          </div>
+                }}
+                disabled={isEditingProfile && Object.keys(errors).length > 0}
+                className={`${isEditingProfile ? 'bg-brand-olive' : 'bg-slate-900'} text-white text-[10px] font-black py-3 rounded-xl shadow-lg active:scale-95 transition-transform uppercase tracking-widest disabled:opacity-50`}
+              >
+                {isEditingProfile ? 'Save Details' : 'Edit Details'}
+              </button>
+              <button 
+                onClick={isEditingProfile ? () => setIsEditingProfile(false) : () => setShowResetConfirm(true)}
+                className={`${isEditingProfile ? 'bg-slate-100 text-slate-600' : 'bg-rose-50 text-rose-600'} text-[10px] font-black py-3 rounded-xl border border-rose-100 active:scale-95 transition-transform uppercase tracking-widest flex items-center justify-center gap-2`}
+              >
+                {isEditingProfile ? 'Cancel' : <><RotateCcw size={12} /> Reset Data</>}
+              </button>
+            </div>
+          )}
         </section>
 
         <section className="flex flex-col gap-4">
@@ -1513,14 +1703,29 @@ export default function App() {
                     </button>
                   </span>
                 ))}
-                <button 
-                  onClick={() => {
-                    const val = prompt("Enter allergy:");
-                    if (val) {
-                      setUserProfile({...userProfile, allergies: [...userProfile.allergies.filter(x => x !== "None"), val]});
+              </div>
+              <div className="mt-3 flex gap-2">
+                <input 
+                  type="text" 
+                  value={newAllergy}
+                  onChange={(e) => setNewAllergy(e.target.value)}
+                  className="flex-1 bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-semibold focus:outline-none focus:border-emerald-400 transition-colors"
+                  placeholder={t.addAllergy}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newAllergy) {
+                      setUserProfile({...userProfile, allergies: [...userProfile.allergies.filter(x => x !== "None"), newAllergy]});
+                      setNewAllergy('');
                     }
                   }}
-                  className="w-10 h-10 border border-emerald-200 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center active:bg-slate-50"
+                />
+                <button 
+                  onClick={() => {
+                    if (newAllergy) {
+                      setUserProfile({...userProfile, allergies: [...userProfile.allergies.filter(x => x !== "None"), newAllergy]});
+                      setNewAllergy('');
+                    }
+                  }}
+                  className="bg-emerald-600 text-white px-4 rounded-xl active:scale-95 transition-transform shadow-md flex items-center justify-center"
                 >
                   <Plus size={18} />
                 </button>
@@ -1544,14 +1749,29 @@ export default function App() {
                     </button>
                   </span>
                 ))}
-                <button 
-                  onClick={() => {
-                    const val = prompt("Enter medication:");
-                    if (val) {
-                      setUserProfile({...userProfile, medications: [...userProfile.medications.filter(x => x !== "None"), val]});
+              </div>
+              <div className="mt-3 flex gap-2">
+                <input 
+                  type="text" 
+                  value={newMed}
+                  onChange={(e) => setNewMed(e.target.value)}
+                  className="flex-1 bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-400 transition-colors"
+                  placeholder={t.addMedication}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newMed) {
+                      setUserProfile({...userProfile, medications: [...userProfile.medications.filter(x => x !== "None"), newMed]});
+                      setNewMed('');
                     }
                   }}
-                  className="w-10 h-10 border border-blue-200 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center"
+                />
+                <button 
+                  onClick={() => {
+                    if (newMed) {
+                      setUserProfile({...userProfile, medications: [...userProfile.medications.filter(x => x !== "None"), newMed]});
+                      setNewMed('');
+                    }
+                  }}
+                  className="bg-blue-600 text-white px-4 rounded-xl active:scale-95 transition-transform shadow-md flex items-center justify-center"
                 >
                   <Plus size={18} />
                 </button>
@@ -1575,14 +1795,29 @@ export default function App() {
                     </button>
                   </span>
                 ))}
-                <button 
-                  onClick={() => {
-                    const val = prompt("Enter illness:");
-                    if (val) {
-                      setUserProfile({...userProfile, chronicIllnesses: [...userProfile.chronicIllnesses.filter(x => x !== "None"), val]});
+              </div>
+              <div className="mt-3 flex gap-2">
+                <input 
+                  type="text" 
+                  value={newIllness}
+                  onChange={(e) => setNewIllness(e.target.value)}
+                  className="flex-1 bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-semibold focus:outline-none focus:border-amber-400 transition-colors"
+                  placeholder={t.addIllness}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newIllness) {
+                      setUserProfile({...userProfile, chronicIllnesses: [...userProfile.chronicIllnesses.filter(x => x !== "None"), newIllness]});
+                      setNewIllness('');
                     }
                   }}
-                  className="w-10 h-10 border border-amber-200 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center"
+                />
+                <button 
+                  onClick={() => {
+                    if (newIllness) {
+                      setUserProfile({...userProfile, chronicIllnesses: [...userProfile.chronicIllnesses.filter(x => x !== "None"), newIllness]});
+                      setNewIllness('');
+                    }
+                  }}
+                  className="bg-amber-600 text-white px-4 rounded-xl active:scale-95 transition-transform shadow-md flex items-center justify-center"
                 >
                   <Plus size={18} />
                 </button>
@@ -1600,14 +1835,29 @@ export default function App() {
                     </button>
                   </span>
                 ))}
-                <button 
-                  onClick={() => {
-                    const val = prompt("Enter dietary restriction:");
-                    if (val) {
-                      setUserProfile({...userProfile, dietaryRestrictions: [...userProfile.dietaryRestrictions, val]});
+              </div>
+              <div className="mt-3 flex gap-2">
+                <input 
+                  type="text" 
+                  value={newDiet}
+                  onChange={(e) => setNewDiet(e.target.value)}
+                  className="flex-1 bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-semibold focus:outline-none focus:border-indigo-400 transition-colors"
+                  placeholder={t.addDiet}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newDiet) {
+                      setUserProfile({...userProfile, dietaryRestrictions: [...userProfile.dietaryRestrictions, newDiet]});
+                      setNewDiet('');
                     }
                   }}
-                  className="w-10 h-10 border border-indigo-200 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center"
+                />
+                <button 
+                  onClick={() => {
+                    if (newDiet) {
+                      setUserProfile({...userProfile, dietaryRestrictions: [...userProfile.dietaryRestrictions, newDiet]});
+                      setNewDiet('');
+                    }
+                  }}
+                  className="bg-indigo-600 text-white px-4 rounded-xl active:scale-95 transition-transform shadow-md flex items-center justify-center"
                 >
                   <Plus size={18} />
                 </button>
@@ -1625,14 +1875,29 @@ export default function App() {
                     </button>
                   </span>
                 ))}
-                <button 
-                  onClick={() => {
-                    const val = prompt("Enter health goal:");
-                    if (val) {
-                      setUserProfile({...userProfile, healthGoals: [...userProfile.healthGoals, val]});
+              </div>
+              <div className="mt-3 flex gap-2">
+                <input 
+                  type="text" 
+                  value={newGoal}
+                  onChange={(e) => setNewGoal(e.target.value)}
+                  className="flex-1 bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-semibold focus:outline-none focus:border-emerald-400 transition-colors"
+                  placeholder={t.addGoal}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newGoal) {
+                      setUserProfile({...userProfile, healthGoals: [...userProfile.healthGoals, newGoal]});
+                      setNewGoal('');
                     }
                   }}
-                  className="w-10 h-10 border border-emerald-200 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center"
+                />
+                <button 
+                  onClick={() => {
+                    if (newGoal) {
+                      setUserProfile({...userProfile, healthGoals: [...userProfile.healthGoals, newGoal]});
+                      setNewGoal('');
+                    }
+                  }}
+                  className="bg-emerald-600 text-white px-4 rounded-xl active:scale-95 transition-transform shadow-md flex items-center justify-center"
                 >
                   <Plus size={18} />
                 </button>
@@ -1662,21 +1927,42 @@ export default function App() {
                     ))}
                     <button 
                       onClick={() => {
-                        const ing = prompt("Enter ingredient to prioritize:");
-                        if (ing) {
+                        if (newPriority) {
                           setUserProfile({
                             ...userProfile, 
                             scanSettings: {
                               ...userProfile.scanSettings, 
-                              priorityIngredients: [...userProfile.scanSettings.priorityIngredients, ing]
+                              priorityIngredients: [...userProfile.scanSettings.priorityIngredients, newPriority]
                             }
                           });
+                          setNewPriority('');
                         }
                       }}
-                      className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400"
+                      className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 bg-slate-50 active:bg-white transition-colors"
                     >
                       <Plus size={14} />
                     </button>
+                  </div>
+                  <div className="mt-3">
+                    <input 
+                      type="text" 
+                      value={newPriority}
+                      onChange={(e) => setNewPriority(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 p-2 rounded-lg text-xs font-semibold focus:outline-none focus:border-slate-400 transition-colors"
+                      placeholder={t.addPriority}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && newPriority) {
+                          setUserProfile({
+                            ...userProfile, 
+                            scanSettings: {
+                              ...userProfile.scanSettings, 
+                              priorityIngredients: [...userProfile.scanSettings.priorityIngredients, newPriority]
+                            }
+                          });
+                          setNewPriority('');
+                        }
+                      }}
+                    />
                   </div>
                 </div>
 
@@ -1726,6 +2012,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-emerald-100">
+      {!isOnline && (
+        <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-white text-[10px] font-bold text-center py-1 z-[200]">
+          OFFLINE MODE: AI scans and some features are not available.
+        </div>
+      )}
       <AnimatePresence>
         {needsOnboarding && (
           <motion.div 
@@ -1734,13 +2025,15 @@ export default function App() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-white z-[100] flex flex-col md:flex-row"
           >
-            <div className="hidden md:flex md:w-1/2 bg-emerald-600 p-12 flex-col justify-center text-white">
-              <ShieldCheck size={80} className="mb-8" />
-              <h1 className="text-5xl font-black mb-4">True Wellness,<br/>Zero Guesswork.</h1>
-              <p className="text-xl opacity-80 leading-relaxed max-w-md">Join thousands of people using AI to scan, track, and optimize their health one label at a time.</p>
+            <div className="hidden md:flex md:w-1/2 bg-[#f8f9f5] p-12 flex-col justify-center text-slate-800 items-center border-r border-[#e0e5d5]">
+              <Logo size="xl" />
+              <p className="text-xl opacity-80 leading-relaxed max-w-md mt-12 text-center text-[#527027]">Join thousands of people using AI to scan, track, and optimize their health one label at a time.</p>
             </div>
             <div className="flex-1 p-8 md:p-24 flex flex-col justify-center">
               <div className="max-w-md mx-auto w-full">
+                <div className="md:hidden flex justify-center mb-8">
+                  <Logo size="md" showText={true} />
+                </div>
                 <div className="flex gap-2 mb-12">
                    {onboardingSteps.map((_, i) => (
                      <div key={i} className={`h-1.5 flex-1 rounded-full bg-slate-100 overflow-hidden`}>
@@ -1790,9 +2083,9 @@ export default function App() {
           
           <div className="flex flex-col gap-2 flex-1">
              {[
-               { id: 'home', icon: Home, label: 'Dashboard' },
-               { id: 'health', icon: Heart, label: 'Health Profile' },
-               { id: 'chat', icon: MessageSquare, label: 'AI Assistant' },
+               { id: 'home', icon: Home, label: t.home },
+               { id: 'health', icon: Heart, label: t.healthProfile },
+               { id: 'chat', icon: MessageSquare, label: t.chat },
              ].map(item => (
                <button 
                  key={item.id}
@@ -2003,7 +2296,7 @@ export default function App() {
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-slate-100 px-8 py-4 pb-8 flex justify-between items-center z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
           <button onClick={() => setActiveTab('home')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'home' ? 'text-emerald-600' : 'text-slate-400'}`}>
             <Home size={22} strokeWidth={activeTab === 'home' ? 2.5 : 2} />
-            <span className="text-[10px] font-bold">Home</span>
+            <span className="text-[10px] font-bold">{t.home}</span>
           </button>
           <div className="relative -mt-12">
              <label className="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200 active:scale-95 transition-transform cursor-pointer border-4 border-white">
@@ -2013,11 +2306,11 @@ export default function App() {
           </div>
           <button onClick={() => setActiveTab('health')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'health' ? 'text-emerald-600' : 'text-slate-400'}`}>
             <Heart size={22} strokeWidth={activeTab === 'health' ? 2.5 : 2} />
-            <span className="text-[10px] font-bold">Health</span>
+            <span className="text-[10px] font-bold">{t.health}</span>
           </button>
           <button onClick={() => setActiveTab('chat')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'chat' ? 'text-emerald-600' : 'text-slate-400'}`}>
             <MessageSquare size={22} strokeWidth={activeTab === 'chat' ? 2.5 : 2} />
-            <span className="text-[10px] font-bold">Assistant</span>
+            <span className="text-[10px] font-bold">{t.chat}</span>
           </button>
         </nav>
         
